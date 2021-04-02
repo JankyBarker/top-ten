@@ -25,6 +25,28 @@ class Firebase {
     this.doSignInWithEmailAndPassword = (email, password) =>
       this.auth.signInWithEmailAndPassword(email, password);
 
+    this.SaveMovie = (movieName) => {
+      var newMessageRef = this.toptens().push();
+
+      newMessageRef.set({
+        user_id: this.auth.currentUser.uid,
+        text: movieName,
+      });
+    };
+
+    this.RemoveMovie = (uid) => {
+      var movieRef = this.movie(uid);
+
+      movieRef
+        .remove()
+        .then(function () {
+          console.log("Remove succeeded.");
+        })
+        .catch(function (error) {
+          console.log("Remove failed: " + error.message);
+        });
+    };
+
     this.doSignOut = () => this.auth.signOut();
 
     this.doPasswordReset = (email) => this.auth.sendPasswordResetEmail(email);
@@ -35,6 +57,9 @@ class Firebase {
     // *** User API ***
     this.user = (uid) => this.db.ref(`users/${uid}`);
     this.users = () => this.db.ref("users");
+
+    this.toptens = () => this.db.ref("toptens");
+    this.movie = (uid) => this.db.ref(`toptens/${uid}`);
   }
 }
 
