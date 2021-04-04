@@ -27,15 +27,14 @@ class Firebase {
 
     this.SaveMovie = (movieName) => {
       var newMessageRef = this.toptens().push();
-
       newMessageRef.set({
-        user_id: this.auth.currentUser.uid,
         text: movieName,
+        priority: 0,
       });
     };
 
-    this.RemoveMovie = (uid) => {
-      var movieRef = this.movie(uid);
+    this.RemoveMovie = (movie_id) => {
+      var movieRef = this.movie(movie_id);
 
       movieRef
         .remove()
@@ -55,11 +54,22 @@ class Firebase {
       this.auth.currentUser.updatePassword(password);
 
     // *** User API ***
-    this.user = (uid) => this.db.ref(`users/${uid}`);
+    this.user = () => {
+      var myUserId = this.auth.currentUser.uid;
+      return this.db.ref(`users/${myUserId}`);
+    };
+
     this.users = () => this.db.ref("users");
 
-    this.toptens = () => this.db.ref("toptens");
-    this.movie = (uid) => this.db.ref(`toptens/${uid}`);
+    this.toptens = () => {
+      var myUserId = this.auth.currentUser.uid;
+      return this.db.ref(`toptens/${myUserId}`).orderByChild("priority");
+    };
+
+    this.movie = (movie_id) => {
+      var myUserId = this.auth.currentUser.uid;
+      return this.db.ref(`toptens/${myUserId}/${movie_id}`);
+    };
   }
 }
 
