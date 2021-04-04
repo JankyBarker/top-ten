@@ -56,15 +56,6 @@ class HomePage extends Component {
         });
       }
 
-      /*
-        const dbObject = snapshot.val();
-
-        movieList = Object.keys(dbObject).map((key) => ({
-          ...dbObject[key],
-          uid: key,
-        }));
-        */
-
       this.setState({
         movies: movieList ? movieList : null,
         loading: false,

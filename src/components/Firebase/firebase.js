@@ -1,7 +1,7 @@
 import app from "firebase/app";
 import "firebase/auth";
 import "firebase/database";
-
+/*
 const config = {
   apiKey: process.env.REACT_APP_API_KEY,
   authDomain: process.env.REACT_APP_AUTH_DOMAIN,
@@ -10,10 +10,10 @@ const config = {
   storageBucket: process.env.REACT_APP_STORAGE_BUCKET,
   messagingSenderId: process.env.REACT_APP_MESSAGING_SENDER_ID,
 };
-
+*/
 class Firebase {
   constructor() {
-    app.initializeApp(config);
+    //app.initializeApp(config);
 
     this.auth = app.auth();
     this.db = app.database();
@@ -24,27 +24,6 @@ class Firebase {
 
     this.doSignInWithEmailAndPassword = (email, password) =>
       this.auth.signInWithEmailAndPassword(email, password);
-
-    this.SaveMovie = (movieName) => {
-      var newMessageRef = this.toptens().push();
-      newMessageRef.set({
-        text: movieName,
-        priority: 0,
-      });
-    };
-
-    this.RemoveMovie = (movie_id) => {
-      var movieRef = this.movie(movie_id);
-
-      movieRef
-        .remove()
-        .then(function () {
-          console.log("Remove succeeded.");
-        })
-        .catch(function (error) {
-          console.log("Remove failed: " + error.message);
-        });
-    };
 
     this.doSignOut = () => this.auth.signOut();
 
@@ -69,6 +48,27 @@ class Firebase {
     this.movie = (movie_id) => {
       var myUserId = this.auth.currentUser.uid;
       return this.db.ref(`toptens/${myUserId}/${movie_id}`);
+    };
+
+    this.SaveMovie = (movieName) => {
+      var newMessageRef = this.toptens().push();
+      newMessageRef.set({
+        text: movieName,
+        priority: 0,
+      });
+    };
+
+    this.RemoveMovie = (movie_id) => {
+      var movieRef = this.movie(movie_id);
+
+      movieRef
+        .remove()
+        .then(function () {
+          console.log("Remove succeeded.");
+        })
+        .catch(function (error) {
+          console.log("Remove failed: " + error.message);
+        });
     };
   }
 }
