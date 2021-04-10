@@ -1,5 +1,10 @@
 https://www.robinwieruch.de/complete-firebase-authentication-react-tutorial#manage-users-with-firebases-realtime-database-in-react
 
+https://johnwcassidy.medium.com/firebase-authentication-hooks-and-context-d0e47395f402
+
+https://ilikekillnerds.com/2017/05/convert-firebase-database-snapshotcollection-array-javascript/
+
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
