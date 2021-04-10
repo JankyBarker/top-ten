@@ -7,27 +7,26 @@ const useAuth = () => {
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
 
-  /*    
-    const loginWithGoogle = async () => {
-        try {
-            const provider = new firebase.auth.GoogleAuthProvider()
-            await firebase.auth().signInWithRedirect(provider)
-            setError(null)
-        } catch (err) {
-            console.log(err)
-            setError(err.message)
-        }
+  const loginWithGoogle = async () => {
+    try {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      await firebase.auth().signInWithRedirect(provider);
+      setError(null);
+    } catch (err) {
+      console.log(err);
+      setError(err.message);
     }
+  };
 
-    const loginAnonymously = () => {
-        firebase.auth().signInAnonymously()
-            .then((user) => { 
-                console.log('Welcome Anon')
-                createBoardForAnons(user.user.uid)
-        })
-    }
-
-*/
+  const loginAnonymously = () => {
+    firebase
+      .auth()
+      .signInAnonymously()
+      .then((user) => {
+        console.log("Welcome Anon");
+        //createBoardForAnons(user.user.uid)
+      });
+  };
 
   const logOut = () => {
     firebase.auth().signOut();
