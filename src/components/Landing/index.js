@@ -1,6 +1,9 @@
-import React from "react";
+import React, { useContext, useState } from "react";
 import { firebase } from "../Firebase/fbConfig.js";
-import { useState } from "react";
+import SignIn from "../SignIn";
+import { IsNetworkOnline } from "../../utils/network";
+import { UserContext } from "../../context/UserContext.js";
+import UserProfile from "../UserProfile/UserProfile.js";
 
 const SignInForm = () => {
 	const [email, setEmail] = useState("");
@@ -87,21 +90,56 @@ const SignInForm = () => {
 };
 
 const Landing = () => {
+	const { user } = useContext(UserContext);
+
 	const logOut = (event) => {
 		event.preventDefault();
 		firebase.auth().signOut();
 	};
 
+	if (!IsNetworkOnline())
+		return (
+			<span>No Internet connection detected! Please connect and try again</span>
+		);
+
+	//error while logging in
+	if (false)
+		return (
+			<div>
+				<h1>"Error"{/*authObject.error*/}</h1>
+				<button
+					className="bg-blue-600 text-3xl px-2 py-1"
+					//onClick={loginWithGoogle}
+				>
+					Retry Login
+				</button>
+			</div>
+		);
+
+	var userName = "";
+	//Not logged in
+	if (user === false) {
+		return <SignIn loginWithGoogle={null} signInAnon={null} />;
+	}
+	//state of loading
+	if (user === null) {
+		return (
+			<div>
+				<SignInForm />
+			</div>
+		);
+	} else {
+		if (user.isAnonymous === true) {
+			userName = "Anon";
+		} else {
+			userName = user.email;
+		}
+	}
+
 	return (
 		<div>
-			<div>
-				<div>
-					{/* <h1>Welcome, {name ? name.split(" ")[0] : "Stranger"}</h1> */}
-					<h1>Welcome, Stranger</h1>
-					<button onClick={logOut}>Log out</button>
-					<SignInForm />
-				</div>
-			</div>
+			<UserProfile name={userName} />
+			<button onClick={logOut}>Log out</button>
 		</div>
 	);
 };
