@@ -1,64 +1,75 @@
-import React, { Component } from "react";
-import { BrowserRouter as Router, Route } from "react-router-dom";
+import React, { useState, useContext } from "react";
+import useFirebaseAuth, { AuthComponent } from "../../hooks/useFirebaseAuth";
 
-import Navigation from "../Navigation";
-import LandingPage from "../Landing";
-import SignUpPage from "../SignUp";
-import SignInPage from "../SignIn";
-import PasswordForgetPage from "../PasswordForget";
-import HomePage from "../Home";
-import AccountPage from "../Account";
-import AdminPage from "../Admin";
-import BoardPage from "../Board";
+import ThemeContextProvider from "../../context/ThemeContext";
+//import UserContextProvider from "../../context/UserContext";
+import { UserContext } from "../../context/UserContext";
 
-import * as ROUTES from "../../constants/routes";
-import { withFirebase } from "../Firebase";
+import { useHotkeys } from "react-hotkeys-hook";
 
-class App extends Component {
-  constructor(props) {
-    super(props);
+import SignIn from "../SignIn";
+import Landing from "../Landing";
 
-    this.state = {
-      authUser: null,
-    };
-  }
+const ExampleComponent = () => {
+	const [count, setCount] = useState(0);
+	useHotkeys("k", () => setCount((prevCount) => prevCount + 1));
 
-  componentDidMount() {
-    this.listener = this.props.firebase.auth.onAuthStateChanged((authUser) => {
-      authUser
-        ? this.setState({ authUser })
-        : this.setState({ authUser: null });
-    });
-  }
+	return <p>Pressed {count} times.</p>;
+};
 
-  componentWillUnmount() {
-    this.listener();
-  }
+function UserProfile() {
+	const { user } = useContext(UserContext);
+	//const user = { displayName: "debug" }; //useSession()
 
-  render() {
-    return (
-      <Router>
-        <div>
-          <Navigation authUser={this.state.authUser} />
+	if (user && user.isAnonymous === true) return <div>Hello, Anon</div>;
 
-          <hr />
-
-          <Route exact path={ROUTES.LANDING} component={LandingPage} />
-          <Route exact path={ROUTES.SIGN_UP} component={SignUpPage} />
-          <Route exact path={ROUTES.SIGN_IN} component={SignInPage} />
-          <Route
-            exact
-            path={ROUTES.PASSWORD_FORGET}
-            component={PasswordForgetPage}
-          />
-          <Route exact path={ROUTES.HOME} component={HomePage} />
-          <Route exact path={ROUTES.BOARD} component={BoardPage} />
-          <Route exact path={ROUTES.ACCOUNT} component={AccountPage} />
-          <Route exact path={ROUTES.ADMIN} component={AdminPage} />
-        </div>
-      </Router>
-    );
-  }
+	return <div>Hello, {user ? user.email : "No Login"}</div>;
 }
 
-export default withFirebase(App);
+function App() {
+	const [user] = useFirebaseAuth();
+
+	if (navigator.onLine !== true) {
+		return (
+			<span>No Internet connection detected! Please connect and try again</span>
+		);
+	}
+
+	//error while logging in
+	if (false)
+		return (
+			<div>
+				<h1>"Error"{/*authObject.error*/}</h1>
+				<button
+					className="bg-blue-600 text-3xl px-2 py-1"
+					//onClick={loginWithGoogle}
+				>
+					Retry Login
+				</button>
+			</div>
+		);
+
+	//Not logged in
+	if (user === false) {
+		return <SignIn loginWithGoogle={null} signInAnon={null} />;
+	}
+	//state of loading
+	if (user === null) {
+		<span>Loading</span>;
+	}
+
+	return (
+		<div className="App">
+			<UserContext.Provider value={{ user }}>
+				<ThemeContextProvider>
+					<ExampleComponent />
+					<UserProfile />
+					<Landing />
+					<AuthComponent />
+				</ThemeContextProvider>
+			</UserContext.Provider>
+		</div>
+	);
+}
+
+export default App;
