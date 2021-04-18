@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react";
 import { firebase } from "../Firebase/fbConfig.js";
-import SignIn from "../SignIn";
+// import SignIn from "../SignIn";
 import { IsNetworkOnline } from "../../utils/network";
 import { UserContext } from "../../context/UserContext.js";
 import UserProfile from "../UserProfile/UserProfile.js";
@@ -40,7 +40,7 @@ const SignInForm = () => {
 			.auth()
 			.signInAnonymously()
 			.then((user) => {
-				console.log("Welcome Anon");
+				//console.log("Welcome Anon");
 				// 	//createBoardForAnons(user.user.uid)
 			})
 			.catch(function (error) {
@@ -119,15 +119,12 @@ const Landing = () => {
 	var userName = "";
 	//Not logged in
 	if (user === false) {
-		return <SignIn loginWithGoogle={null} signInAnon={null} />;
+		// return <SignIn loginWithGoogle={null} signInAnon={null} />;
+		return <SignInForm />;
 	}
 	//state of loading
 	if (user === null) {
-		return (
-			<div>
-				<SignInForm />
-			</div>
-		);
+		return <span>Loading</span>;
 	} else {
 		if (user.isAnonymous === true) {
 			userName = "Anon";
@@ -139,6 +136,7 @@ const Landing = () => {
 	return (
 		<div>
 			<UserProfile name={userName} />
+			<SignInForm />
 			<button onClick={logOut}>Log out</button>
 		</div>
 	);

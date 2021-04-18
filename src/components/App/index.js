@@ -23,9 +23,9 @@ function App() {
 		<div className="App">
 			<UserContext.Provider value={{ user }}>
 				<ThemeContextProvider>
+					<AuthComponent />
 					<ExampleKeyComponent />
 					<Landing />
-					<AuthComponent />
 				</ThemeContextProvider>
 			</UserContext.Provider>
 		</div>
