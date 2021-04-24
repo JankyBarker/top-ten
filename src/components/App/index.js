@@ -1,64 +1,71 @@
-import React, { Component } from "react";
-import { BrowserRouter as Router, Route } from "react-router-dom";
+import React, { useState, useEffect } from "react";
 
-import Navigation from "../Navigation";
-import LandingPage from "../Landing";
-import SignUpPage from "../SignUp";
-import SignInPage from "../SignIn";
-import PasswordForgetPage from "../PasswordForget";
-import HomePage from "../Home";
-import AccountPage from "../Account";
-import AdminPage from "../Admin";
-import BoardPage from "../Board";
+import { AuthProvider, useAuth } from "../../context/AuthContext";
 
-import * as ROUTES from "../../constants/routes";
-import { withFirebase } from "../Firebase";
+import { useHotkeys } from "react-hotkeys-hook";
 
-class App extends Component {
-  constructor(props) {
-    super(props);
+import Landing from "../Landing";
 
-    this.state = {
-      authUser: null,
-    };
-  }
+export const TimerComponent = () => {
+	const [timeCurrent, setTimeLeft] = useState(0);
 
-  componentDidMount() {
-    this.listener = this.props.firebase.auth.onAuthStateChanged((authUser) => {
-      authUser
-        ? this.setState({ authUser })
-        : this.setState({ authUser: null });
-    });
-  }
+	useEffect(() => {
+		const funcTimer = setTimeout(() => {
+			setTimeLeft(timeCurrent + 1);
+		}, 1000);
 
-  componentWillUnmount() {
-    this.listener();
-  }
+		// Clear timeout if the component is unmounted
+		return () => clearTimeout(funcTimer);
+	});
 
-  render() {
-    return (
-      <Router>
-        <div>
-          <Navigation authUser={this.state.authUser} />
+	return <div>{<span>Count: {timeCurrent}</span>}</div>;
+};
 
-          <hr />
+const ExampleKeyComponent = () => {
+	const [count] = useState(0);
 
-          <Route exact path={ROUTES.LANDING} component={LandingPage} />
-          <Route exact path={ROUTES.SIGN_UP} component={SignUpPage} />
-          <Route exact path={ROUTES.SIGN_IN} component={SignInPage} />
-          <Route
-            exact
-            path={ROUTES.PASSWORD_FORGET}
-            component={PasswordForgetPage}
-          />
-          <Route exact path={ROUTES.HOME} component={HomePage} />
-          <Route exact path={ROUTES.BOARD} component={BoardPage} />
-          <Route exact path={ROUTES.ACCOUNT} component={AccountPage} />
-          <Route exact path={ROUTES.ADMIN} component={AdminPage} />
-        </div>
-      </Router>
-    );
-  }
+	const { /*users: userList,*/ setUsers: funcSetUsers } = useAuth();
+
+	useHotkeys("k", () =>
+		//prevList is react passing use the previous state
+		funcSetUsers((prevList) => [...prevList, "hellow", "world"])
+	);
+
+	return <p>Pressed {count} times.</p>;
+};
+
+const UserListComponent = () => {
+	//define {userList} with weird js object destructuring bullshit
+	const { users: userList } = useAuth();
+
+	const listItems = userList.map((item, i) => {
+		return <li key={i}>{item}</li>;
+	});
+
+	return <div>{listItems}</div>;
+};
+
+function ResetButton() {
+	//define {setValue} with weird js object destructuring bullshit
+	const { setUsers: setValue } = useAuth();
+
+	return <button onClick={() => setValue([])}>Reset User List</button>;
 }
 
-export default withFirebase(App);
+function App() {
+	//const [user] = useFirebaseAuth();
+
+	return (
+		<div className="App">
+			<AuthProvider>
+				<ResetButton />
+				<UserListComponent />
+				<TimerComponent />
+				<ExampleKeyComponent />
+				<Landing />
+			</AuthProvider>
+		</div>
+	);
+}
+
+export default App;

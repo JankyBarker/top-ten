@@ -1,76 +1,65 @@
 import app from "firebase/app";
 import "firebase/auth";
 import "firebase/database";
-/*
-const config = {
-  apiKey: process.env.REACT_APP_API_KEY,
-  authDomain: process.env.REACT_APP_AUTH_DOMAIN,
-  databaseURL: process.env.REACT_APP_DATABASE_URL,
-  projectId: process.env.REACT_APP_PROJECT_ID,
-  storageBucket: process.env.REACT_APP_STORAGE_BUCKET,
-  messagingSenderId: process.env.REACT_APP_MESSAGING_SENDER_ID,
-};
-*/
+
 class Firebase {
-  constructor() {
-    //app.initializeApp(config);
+	constructor() {
+		this.auth = app.auth();
+		this.db = app.database();
 
-    this.auth = app.auth();
-    this.db = app.database();
+		// *** Auth API ***
+		this.doCreateUserWithEmailAndPassword = (email, password) =>
+			this.auth.createUserWithEmailAndPassword(email, password);
 
-    // *** Auth API ***
-    this.doCreateUserWithEmailAndPassword = (email, password) =>
-      this.auth.createUserWithEmailAndPassword(email, password);
+		this.doSignInWithEmailAndPassword = (email, password) =>
+			this.auth.signInWithEmailAndPassword(email, password);
 
-    this.doSignInWithEmailAndPassword = (email, password) =>
-      this.auth.signInWithEmailAndPassword(email, password);
+		this.doSignOut = () => this.auth.signOut();
 
-    this.doSignOut = () => this.auth.signOut();
+		this.doPasswordReset = (email) => this.auth.sendPasswordResetEmail(email);
 
-    this.doPasswordReset = (email) => this.auth.sendPasswordResetEmail(email);
+		this.doPasswordUpdate = (password) =>
+			this.auth.currentUser.updatePassword(password);
 
-    this.doPasswordUpdate = (password) =>
-      this.auth.currentUser.updatePassword(password);
+		// *** User API ***
+		this.user = () => {
+			var myUserId = this.auth.currentUser.uid;
+			return this.db.ref(`users/${myUserId}`);
+		};
 
-    // *** User API ***
-    this.user = () => {
-      var myUserId = this.auth.currentUser.uid;
-      return this.db.ref(`users/${myUserId}`);
-    };
+		this.users = () => this.db.ref("users");
 
-    this.users = () => this.db.ref("users");
+		this.toptens = () => {
+			var myUserId = this.auth.currentUser.uid;
+			return this.db.ref(`toptens/${myUserId}`).orderByChild("priority");
+		};
 
-    this.toptens = () => {
-      var myUserId = this.auth.currentUser.uid;
-      return this.db.ref(`toptens/${myUserId}`).orderByChild("priority");
-    };
+		this.movie = (movie_id) => {
+			var myUserId = this.auth.currentUser.uid;
+			return this.db.ref(`toptens/${myUserId}/${movie_id}`);
+		};
 
-    this.movie = (movie_id) => {
-      var myUserId = this.auth.currentUser.uid;
-      return this.db.ref(`toptens/${myUserId}/${movie_id}`);
-    };
+		this.SaveMovie = (movieName) => {
+			var newMessageRef = this.toptens().push();
+			newMessageRef.set({
+				text: movieName,
+				priority: 0,
+			});
+		};
 
-    this.SaveMovie = (movieName) => {
-      var newMessageRef = this.toptens().push();
-      newMessageRef.set({
-        text: movieName,
-        priority: 0,
-      });
-    };
+		this.RemoveMovie = (movie_id) => {
+			var movieRef = this.movie(movie_id);
 
-    this.RemoveMovie = (movie_id) => {
-      var movieRef = this.movie(movie_id);
-
-      movieRef
-        .remove()
-        .then(function () {
-          console.log("Remove succeeded.");
-        })
-        .catch(function (error) {
-          console.log("Remove failed: " + error.message);
-        });
-    };
-  }
+			movieRef
+				.remove()
+				.then(function () {
+					console.log("Remove succeeded.");
+				})
+				.catch(function (error) {
+					console.log("Remove failed: " + error.message);
+				});
+		};
+	}
 }
 
 export default Firebase;
