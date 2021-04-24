@@ -149,11 +149,13 @@ function MovieListView(props) {
 		return topUserPostsRef.on("value", (snap) => {
 			const documents = [];
 
-			snap.forEach((childSnapshot) => {
-				var item = { ...childSnapshot.val() };
-				item.uid = childSnapshot.key;
-				documents.push(item);
-			});
+			if (snap !== undefined) {
+				snap.forEach((childSnapshot) => {
+					var item = { ...childSnapshot.val() };
+					item.uid = childSnapshot.key;
+					documents.push(item);
+				});
+			}
 
 			setMovies(documents);
 		});
