@@ -3,21 +3,6 @@ import "firebase/auth";
 import { firebase } from "../components/Firebase/fbConfig.js";
 const DELAY_COUNT = 0;
 
-export const AuthComponent = () => {
-	const [timeLeft, setTimeLeft] = useState(0);
-
-	useEffect(() => {
-		const timer = setTimeout(() => {
-			setTimeLeft(timeLeft + 1);
-		}, 1000);
-
-		// Clear timeout if the component is unmounted
-		return () => clearTimeout(timer);
-	});
-
-	return <div>{<span>Count: {timeLeft}</span>}</div>;
-};
-
 const useFirebaseAuth = () => {
 	const [user, setUser] = useState(null);
 	const [error, setError] = useState(null);
@@ -55,6 +40,20 @@ const useFirebaseAuth = () => {
 			console.log("unsubbed");
 		};
 	}, []);
+
+	// const loginAnonymously = () => {
+	// 	firebase
+	// 		.auth()
+	// 		.signInAnonymously()
+	// 		.then((user) => {
+	// 			//do stuff
+	// 		});
+	// };
+
+	// const logOut = () => {
+	// 	firebase.auth().signOut();
+	// 	setUser(null);
+	// };
 
 	return [user, error];
 };

@@ -90,11 +90,12 @@ const SignInForm = () => {
 };
 
 const Landing = () => {
-	const { user } = useContext(UserContext);
+	var { user } = useContext(UserContext);
 
 	const logOut = (event) => {
 		event.preventDefault();
 		firebase.auth().signOut();
+		user = false;
 	};
 
 	if (!IsNetworkOnline())
