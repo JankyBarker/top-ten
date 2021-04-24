@@ -1,6 +1,7 @@
 import firebase from "firebase/app";
 import "firebase/firestore";
 import "firebase/auth";
+import "firebase/database";
 
 const fbconfig = {
 	apiKey: process.env.REACT_APP_API_KEY,
@@ -15,6 +16,6 @@ const fbconfig = {
 // Remember: module-level scope is executed just once (on the first time is is imported, due to JavaScript magic)
 firebase.initializeApp(fbconfig);
 
-const db = null; //firebase.database();
+const db = firebase.database();
 
 export { firebase, db };

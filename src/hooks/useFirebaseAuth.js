@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import "firebase/auth";
 import { firebase } from "../components/Firebase/fbConfig.js";
-const DELAY_COUNT = 1 * 1000;
+const DELAY_COUNT = 0; //1 * 1000;
 
 const useFirebaseAuth = () => {
 	const [user, setUser] = useState(null);
