@@ -1,15 +1,10 @@
 import React, { useState, useEffect } from "react";
 
-//import useFirebaseAuth from "../../hooks/useFirebaseAuth";
-
-import ThemeContextProvider from "../../context/ThemeContext";
-//import UserContextProvider from "../../context/UserContext";
-//import { UserContext } from "../../context/UserContext";
-import { CountProvider, useCount } from "../../context/CountContext";
+import { AuthProvider, useAuth } from "../../context/AuthContext";
 
 import { useHotkeys } from "react-hotkeys-hook";
 
-//import Landing from "../Landing";
+import Landing from "../Landing";
 
 export const TimerComponent = () => {
 	const [timeCurrent, setTimeLeft] = useState(0);
@@ -29,7 +24,7 @@ export const TimerComponent = () => {
 const ExampleKeyComponent = () => {
 	const [count] = useState(0);
 
-	const { /*users: userList,*/ setUsers: funcSetUsers } = useCount();
+	const { /*users: userList,*/ setUsers: funcSetUsers } = useAuth();
 
 	useHotkeys("k", () =>
 		//prevList is react passing use the previous state
@@ -40,13 +35,8 @@ const ExampleKeyComponent = () => {
 };
 
 const UserListComponent = () => {
-	// get the current value in UsersContext through the hook
-	//const themeContext = useContext(ThemeContext);
-	//const { users } = themeContext;
-
-	const { users: userList } = useCount();
-
-	console.log("UserListComponent:" + userList);
+	//define {userList} with weird js object destructuring bullshit
+	const { users: userList } = useAuth();
 
 	const listItems = userList.map((item, i) => {
 		return <li key={i}>{item}</li>;
@@ -57,7 +47,7 @@ const UserListComponent = () => {
 
 function ResetButton() {
 	//define {setValue} with weird js object destructuring bullshit
-	const { setUsers: setValue } = useCount();
+	const { setUsers: setValue } = useAuth();
 
 	return <button onClick={() => setValue([])}>Reset User List</button>;
 }
@@ -67,17 +57,13 @@ function App() {
 
 	return (
 		<div className="App">
-			{/* <UserContext.Provider value={{ user }}> */}
-			<CountProvider>
-				<ThemeContextProvider>
-					<ResetButton />
-					<UserListComponent />
-					<TimerComponent />
-					<ExampleKeyComponent />
-					{/* <Landing /> */}
-				</ThemeContextProvider>
-			</CountProvider>
-			{/* </UserContext.Provider> */}
+			<AuthProvider>
+				<ResetButton />
+				<UserListComponent />
+				<TimerComponent />
+				<ExampleKeyComponent />
+				<Landing />
+			</AuthProvider>
 		</div>
 	);
 }
