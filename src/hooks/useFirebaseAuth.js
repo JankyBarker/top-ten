@@ -1,34 +1,20 @@
 import { useState, useEffect } from "react";
 import "firebase/auth";
 import { firebase } from "../components/Firebase/fbConfig.js";
-const DELAY_COUNT = 0; //1 * 1000;
 
 const useFirebaseAuth = () => {
 	const [user, setUser] = useState(null);
 	const [error, setError] = useState(false);
 
 	function onChange(newUser) {
-		//console.log("onChange: newUser " + newUser);
-		const delayTimeout = () => {
-			//console.log("setUser: delayed " + newUser);
+		setError(null);
 
-			if (newUser) {
-				//console.log("setUser: value " + newUser);
-				setUser(newUser);
-			} else {
-				//console.log("setError: Null User ");
-				setError("false User");
-				setUser(false);
-			}
-
-			setError(null);
-		};
-
-		let timeoutId;
-		const cancel = () => timeoutId && clearTimeout(timeoutId); //returns timeoutId and clears the timeout of that id
-		timeoutId = setTimeout(delayTimeout, DELAY_COUNT);
-
-		return cancel;
+		if (newUser) {
+			setUser(newUser);
+		} else {
+			setError("false User");
+			setUser(false);
+		}
 	}
 
 	useEffect(() => {
