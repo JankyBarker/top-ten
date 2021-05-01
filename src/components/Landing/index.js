@@ -333,7 +333,7 @@ const Landing = () => {
 			<button onClick={funcLogOut}>Log out</button>
 			{false ? <MovieListView /> : null}
 			<Board
-				state={state} //dependency on data structure
+				state={state} //removed dependency on data structure
 				setState={setState}
 				AddGroup={() => {
 					setState([...state, []]);
