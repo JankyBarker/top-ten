@@ -1,112 +1,156 @@
-import React, { useState } from "react";
-import "./Board.css";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
 
-const finalSpaceCharacters = [
-  {
-    id: "gary",
-    name: "Gary Goodspeed",
-    thumb: "/images/gary.png",
-    ord: 0,
-  },
-  {
-    id: "cato",
-    name: "Little Cato",
-    thumb: "/images/cato.png",
-    ord: 1,
-  },
-  {
-    id: "kvn",
-    name: "KVN",
-    thumb: "/images/kvn.png",
-    ord: 2,
-  },
-  {
-    id: "mooncake",
-    name: "Mooncake",
-    thumb: "/images/mooncake.png",
-    ord: 3,
-  },
-  {
-    id: "quinn",
-    name: "Quinn Ergon",
-    thumb: "/images/quinn.png",
-    ord: 4,
-  },
-];
+const reorder = (list, startIndex, endIndex) => {
+	const result = Array.from(list);
+	const [removed] = result.splice(startIndex, 1);
+	result.splice(endIndex, 0, removed);
 
-function BoardPage() {
-  const [characters, updateCharacters] = useState(finalSpaceCharacters);
+	return result;
+};
 
-  characters.sort(function (a, b) {
-    return a.ord - b.ord;
-  });
+/**
+ * Moves an item from one list to another list.
+ */
+const move = (source, destination, droppableSource, droppableDestination) => {
+	const sourceClone = Array.from(source);
+	const destClone = Array.from(destination);
+	const [removed] = sourceClone.splice(droppableSource.index, 1);
 
-  function handleOnDragEnd(result) {
-    if (!result.destination) return;
+	destClone.splice(droppableDestination.index, 0, removed);
 
-    const items = Array.from(characters);
+	const result = {};
+	result[droppableSource.droppableId] = sourceClone;
+	result[droppableDestination.droppableId] = destClone;
 
-    const sourceItem = items[result.source.index];
-    const destItem = items[result.destination.index];
+	return result;
+};
+const grid = 8;
 
-    const sourceOrder = sourceItem.ord;
-    const destOrder = destItem.ord;
+const getItemStyle = (isDragging, draggableStyle) => ({
+	// some basic styles to make the items look a bit nicer
+	userSelect: "none",
+	padding: grid * 2,
+	margin: `0 0 ${grid}px 0`,
 
-    sourceItem.ord = destOrder;
-    destItem.ord = sourceOrder;
+	// change background colour if dragging
+	background: isDragging ? "lightgreen" : "grey",
 
-    items.sort(function (a, b) {
-      return a.ord - b.ord;
-    });
+	// styles we need to apply on draggables
+	...draggableStyle,
+});
+const getListStyle = (isDraggingOver) => ({
+	background: isDraggingOver ? "lightblue" : "lightgrey",
+	padding: grid,
+	width: 250,
+});
 
-    updateCharacters(items);
-  }
+const Task = ({ index, item, state, ind, setState }) => {
+	return (
+		<div>
+			<div
+				style={{
+					display: "flex",
+					justifyContent: "space-around",
+				}}
+			></div>
+			{item.movieTitle} {/*//dependency on item data structure */}
+			<button
+				type="button"
+				onClick={() => {
+					const newState = [...state];
+					newState[ind].splice(index, 1);
+					setState(newState.filter((group) => group.length));
+				}}
+			>
+				delete
+			</button>
+		</div>
+	);
+};
 
-  return (
-    <div className="App">
-      <header className="App-header">
-        <h1>My Top Ten</h1>
-        <DragDropContext onDragEnd={handleOnDragEnd}>
-          <Droppable droppableId="characters">
-            {(provided) => (
-              <ul
-                className="characters"
-                {...provided.droppableProps}
-                ref={provided.innerRef}
-              >
-                {characters.map(({ id, name, thumb, ord }) => {
-                  return (
-                    <Draggable key={id} draggableId={id} index={ord}>
-                      {(provided) => (
-                        <li
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                        >
-                          <div className="characters-thumb">
-                            <img src={thumb} alt={`${name} Thumb`} />
-                          </div>
-                          <p>{name}</p>
-                        </li>
-                      )}
-                    </Draggable>
-                  );
-                })}
-                {provided.placeholder}
-              </ul>
-            )}
-          </Droppable>
-        </DragDropContext>
-      </header>
-      <p>
-        Images from{" "}
-        <a href="https://final-space.fandom.com/wiki/Final_Space_Wiki">
-          Final Space Wiki
-        </a>
-      </p>
-    </div>
-  );
+function Board({ state, setState, AddGroup, AddItem }) {
+	if (!state) {
+		return null;
+	}
+
+	function onDragEnd(result) {
+		const { source, destination } = result;
+
+		// dropped outside the list
+		if (!destination) {
+			return;
+		}
+		const sInd = +source.droppableId;
+		const dInd = +destination.droppableId;
+
+		if (sInd === dInd) {
+			const items = reorder(state[sInd], source.index, destination.index);
+			const newState = [...state];
+			newState[sInd] = items;
+			setState(newState);
+		} else {
+			const result = move(state[sInd], state[dInd], source, destination);
+			const newState = [...state];
+			newState[sInd] = result[sInd];
+			newState[dInd] = result[dInd];
+
+			setState(newState.filter((group) => group.length));
+		}
+	}
+
+	return (
+		<div>
+			<button type="button" onClick={AddGroup}>
+				Add Group
+			</button>
+			<button type="button" onClick={AddItem}>
+				Add New Item
+			</button>
+			<div style={{ display: "flex" }}>
+				<DragDropContext onDragEnd={onDragEnd}>
+					{state.map((el, ind) => (
+						<Droppable key={ind} droppableId={`${ind}`}>
+							{(provided, snapshot) => (
+								<div
+									ref={provided.innerRef}
+									style={getListStyle(snapshot.isDraggingOver)}
+									{...provided.droppableProps}
+								>
+									{el.map((item, index) => (
+										<Draggable
+											key={item.uid} //dependency on item data structure
+											draggableId={item.uid} //dependency on item data structure
+											index={index}
+										>
+											{(provided, snapshot) => (
+												<div
+													ref={provided.innerRef}
+													{...provided.draggableProps}
+													{...provided.dragHandleProps}
+													style={getItemStyle(
+														snapshot.isDragging,
+														provided.draggableProps.style
+													)}
+												>
+													<Task
+														index={index}
+														item={item}
+														state={state}
+														ind={ind}
+														setState={setState}
+													/>
+												</div>
+											)}
+										</Draggable>
+									))}
+									{provided.placeholder}
+								</div>
+							)}
+						</Droppable>
+					))}
+				</DragDropContext>
+			</div>
+		</div>
+	);
 }
-
-export default BoardPage;
+export default Board;

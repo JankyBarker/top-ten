@@ -1,9 +1,23 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState } from "react";
 import { IsNetworkOnline } from "../../utils/network";
 import UserProfile from "../UserProfile/UserProfile.js";
 import { useAuth } from "../../context/AuthContext.js";
-import { db } from "../../components/Firebase/fbConfig.js";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import useTopTen from "../../hooks/useTopTen";
+import { v4 as uuidv4 } from "uuid";
+import { db } from "../Firebase/fbConfig.js";
+import Board from "../Board";
+//import useDummyData from "../../hooks/useDummyData";
+
+const TYPENAME_TASK = "task";
+
+// fake data generator <---REFACTOR THIS AWAY into useDummyData?
+const getItems = (count, offset = 0) => {
+	return Array.from({ length: count }, (v, k) => k).map((k) => ({
+		uid: `item-${k + offset}-${new Date().getTime()}`,
+		movieTitle: `item ${k + offset}`,
+	}));
+};
 
 const SignInForm = () => {
 	const [email, setEmail] = useState("");
@@ -70,164 +84,220 @@ const SignInForm = () => {
 	);
 };
 
-function RemoveMovie(movie_id, myUserId) {
-	var movieRef = db.ref(`toptens/${myUserId}/${movie_id}`);
+function SaveMovie(userId, boardId, title) {
+	console.log("SaveMovie/userId/" + userId);
+	console.log("SaveMovie/boardId/" + boardId);
+	console.log("SaveMovie/title/" + title);
+	//console.log("SaveMovie/priority/ " + priority);
+	//console.log("SaveMovie/description/ " + description);
 
-	movieRef
-		.remove()
-		.then(function () {
-			console.log("Remove succeeded.");
-		})
-		.catch(function (error) {
-			console.log("Remove failed: " + error.message);
-		});
-}
-
-function SaveMovie(movieName, myUserId) {
-	var newMovieRef = db.ref(`toptens/${myUserId}`).push();
+	var newMovieRef = db.ref(`users/${userId}/boards/${boardId}/tasks`).push();
 
 	newMovieRef.set({
-		text: movieName,
+		movieTitle: title,
 		priority: 0,
 	});
 }
 
-function ChangeMoviePriority(movie_id, myUserId, newPriority) {
-	var movieRef = db.ref(`toptens/${myUserId}/${movie_id}`);
-	movieRef
-		.update({ priority: newPriority })
-		.then(function () {
-			console.log("Move succeeded.");
-		})
-		.catch(function (error) {
-			console.log("Move failed: " + error.message);
-		});
-}
+const AddTask = ({ boardId, userId, close }) => {
+	const addTask = (e) => {
+		e.preventDefault();
+
+		const title = e.target.elements.newTaskTitle.value;
+		//const priority = e.target.elements.priority.value;
+
+		if (!title) return;
+
+		SaveMovie(userId, boardId, title);
+		e.target.elements.newTaskTitle.value = "";
+	};
+
+	return (
+		<div>
+			<form onSubmit={addTask} autoComplete="off">
+				<h4>Add a New Task</h4>
+
+				<div>
+					<div>
+						<label htmlFor="newTaskTitle">Title:</label>
+						<input maxLength="45" required type="text" name="newTaskTitle" />
+					</div>
+
+					{/* <div>
+						<div>
+							<label htmlFor="priority">Priority: </label>
+							<select name="priority" defaultValue="low" className="select">
+								<option value="high">High</option>
+								<option value="medium">Medium</option>
+								<option value="low">Low</option>
+							</select>
+						</div>
+					</div> */}
+				</div>
+
+				{/* <div>
+					<label htmlFor="newTaskDescription">Description (optional):</label>
+					<textarea
+						name="desc"
+						defaultValue={description}
+						onChange={(e) => setDescription(e.target.value)}
+					/>
+				</div> */}
+
+				<button>Add Task</button>
+			</form>
+		</div>
+	);
+};
+
+const Task = ({ taskData, index }) => {
+	return (
+		<div>
+			<Draggable key={taskData.uid} draggableId={taskData.uid} index={index}>
+				{(provided, snapshot) => (
+					<div
+						{...provided.draggableProps}
+						{...provided.dragHandleProps}
+						ref={provided.innerRef}
+					>
+						<div>
+							<h4>{taskData.movieTitle}</h4>
+						</div>
+					</div>
+				)}
+			</Draggable>
+		</div>
+	);
+};
+
+const Column = ({
+	column,
+	tasks,
+	allData,
+	boardId,
+	userId,
+	filterBy,
+	index,
+}) => {
+	return (
+		<>
+			<Draggable draggableId={column.id} index={index} key={column.id}>
+				{(provided) => (
+					<div {...provided.draggableProps} ref={provided.innerRef}>
+						<div>
+							<div {...provided.dragHandleProps}></div>
+							<Droppable
+								key={column.id}
+								droppableId={column.id}
+								type={TYPENAME_TASK}
+							>
+								{(provided) => (
+									<div {...provided.droppableProps} ref={provided.innerRef}>
+										{tasks?.map((t, i) => (
+											<Task taskData={t} index={i} />
+										))}
+										{provided.placeholder}
+									</div>
+								)}
+							</Droppable>
+						</div>
+					</div>
+				)}
+			</Draggable>
+		</>
+	);
+};
 
 function MovieListView(props) {
-	const [movies, setMovies] = useState(null);
+	const boardId = 0;
 
 	const { currentUser: user } = useAuth();
 
-	const callbackRemoveMovie = useCallback(
-		(movieID) => {
-			RemoveMovie(movieID, user.uid);
-		},
-		[user]
-	);
-
-	const addMovie = (e) => {
-		e.preventDefault();
-		const newMovieName = e.target.elements.movieName.value;
-		SaveMovie(newMovieName, user.uid);
-		e.target.elements.movieName.value = "";
-	};
-
-	const handleOnDragEnd = (result) => {
-		if (!result.destination) return;
-
-		const items = Array.from(movies);
-
-		const sourceItem = items[result.source.index];
-		const destItem = items[result.destination.index];
-
-		const sourceOrder = sourceItem.priority;
-		const destOrder = destItem.priority;
-
-		//todo- move into one update call
-		ChangeMoviePriority(sourceItem.uid, user.uid, destOrder);
-		ChangeMoviePriority(destItem.uid, user.uid, sourceOrder);
-	};
-
 	var myUserId = user.uid;
 
-	useEffect(() => {
-		var topUserPostsRef = db
-			.ref(`toptens/${myUserId}`)
-			.orderByChild("priority");
+	const { initialData } = useTopTen(myUserId, boardId);
 
-		return topUserPostsRef.on("value", (snap) => {
-			const documents = [];
+	const handleOnDragEnd = (result) => {
+		if (result.type === TYPENAME_TASK) {
+			console.log("drag task");
+			return;
+		}
 
-			if (snap !== undefined) {
-				snap.forEach((childSnapshot) => {
-					var item = { ...childSnapshot.val() };
-					item.uid = childSnapshot.key;
-					documents.push(item);
-				});
-			}
+		console.log("drag column");
+	};
 
-			setMovies(documents);
-		});
-	}, [myUserId]);
+	if (!initialData || !initialData.tasks) {
+		return <span>Data Error</span>;
+	}
 
-	if (movies === null) return <span>No movies yet!</span>;
-	else
-		return (
-			<div className="App">
-				<header className="App-header">
-					<h1>My Top Ten</h1>
-					<form onSubmit={addMovie} autoComplete="off">
-						<input
-							maxLength="20"
-							name="movieName"
-							type="text"
-							placeholder="Name of movie?"
-						/>
+	if (typeof initialData !== "object") {
+		return <span>Data Type Error: : InitialData not an object</span>;
+	}
 
-						<button type="submit">Save</button>
-					</form>
-					<DragDropContext onDragEnd={handleOnDragEnd}>
-						<Droppable droppableId="characters">
-							{(provided) => (
-								<ul
-									className="characters"
-									{...provided.droppableProps}
-									ref={provided.innerRef}
-								>
-									{movies.map((movie, i) => {
-										return (
-											<Draggable
-												key={movie.uid}
-												draggableId={movie.uid}
-												index={i}
-											>
-												{(provided) => (
-													<li
-														ref={provided.innerRef}
-														{...provided.draggableProps}
-														{...provided.dragHandleProps}
-													>
-														<div>
-															<span>Movie: {movie.text} </span>
-															<button
-																onClick={() => {
-																	callbackRemoveMovie(movie.uid);
-																}}
-															>
-																Delete Row
-															</button>
-														</div>
-													</li>
-												)}
-											</Draggable>
-										);
-									})}
-									{provided.placeholder}
-								</ul>
-							)}
-						</Droppable>
-					</DragDropContext>
-				</header>
-			</div>
-		);
+	if (!Array.isArray(initialData.tasks)) {
+		return <span>Data Type Error: InitialData.tasks not array</span>;
+	}
+
+	const tasks = initialData.tasks.map((t) => t);
+
+	const uid = uuidv4();
+
+	const column = { id: uid };
+
+	return (
+		<div className="App">
+			<header className="App-header">
+				<h1>My Top Ten</h1>
+				<AddTask
+					boardId={boardId}
+					userId={myUserId}
+					allCols={initialData.columnOrder}
+				/>
+
+				<DragDropContext onDragEnd={handleOnDragEnd}>
+					<Droppable
+						key="allCols"
+						droppableId="allCols"
+						type="column"
+						direction="horizontal"
+					>
+						{(provided) => (
+							<div {...provided.droppableProps} ref={provided.innerRef}>
+								<Column
+									column={column}
+									tasks={tasks}
+									allData={initialData}
+									key={uid}
+									boardId={boardId}
+									userId={myUserId}
+									index={0}
+								/>
+							</div>
+						)}
+					</Droppable>
+				</DragDropContext>
+			</header>
+		</div>
+	);
 }
 
 const Landing = () => {
-	//var { user } = useContext(UserContext);
+	//#region
 
 	//define {authError, user, funcLogOut } with weird js object destructuring bullshit
 	var { error: authError, currentUser: user, Logout: funcLogOut } = useAuth();
+
+	//var myUserId = user?.uid;
+	//const boardId = 0;
+
+	// const { initialData: state, setInitialData: setState } = useTopTen(
+	// 	myUserId,
+	// 	boardId
+	// );
+
+	const [state, setState] = useState([getItems(10), getItems(5, 10)]);
+
+	//const [state, setState] = useDummyData();
 
 	if (!IsNetworkOnline())
 		return (
@@ -240,8 +310,8 @@ const Landing = () => {
 			<div>
 				<h1>"Error"{/*authObject.error*/}</h1>
 				<button
-					className="bg-blue-600 text-3xl px-2 py-1"
-					//onClick={loginWithGoogle}
+
+				//onClick={loginWithGoogle}
 				>
 					Retry Login
 				</button>
@@ -265,11 +335,23 @@ const Landing = () => {
 		userName = user.email;
 	}
 
+	//#endregion
+
 	return (
 		<div>
 			<UserProfile name={userName} />
 			<button onClick={funcLogOut}>Log out</button>
-			<MovieListView />
+			{false ? <MovieListView /> : null}
+			<Board
+				state={state} //dependency on data structure
+				setState={setState}
+				AddGroup={() => {
+					setState([...state, []]);
+				}}
+				AddItem={() => {
+					setState([...state, getItems(1)]);
+				}}
+			/>
 		</div>
 	);
 };

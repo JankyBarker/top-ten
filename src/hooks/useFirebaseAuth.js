@@ -10,13 +10,13 @@ const useFirebaseAuth = () => {
 	function onChange(newUser) {
 		//console.log("onChange: newUser " + newUser);
 		const delayTimeout = () => {
-			console.log("setUser: delayed " + newUser);
+			//console.log("setUser: delayed " + newUser);
 
 			if (newUser) {
-				console.log("setUser: value " + newUser);
+				//console.log("setUser: value " + newUser);
 				setUser(newUser);
 			} else {
-				console.log("setError: Null User ");
+				//console.log("setError: Null User ");
 				setError("false User");
 				setUser(false);
 			}
@@ -37,7 +37,7 @@ const useFirebaseAuth = () => {
 
 		return function cleanup() {
 			unsubscribe();
-			console.log("unsubbed");
+			//console.log("unsubbed");
 		};
 	}, []);
 
