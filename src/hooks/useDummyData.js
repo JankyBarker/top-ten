@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { db } from "../components/Firebase/fbConfig.js";
 
 // fake data generator
 const getItems = (count, offset = 0) => {
@@ -41,26 +40,7 @@ const GetInitialData = () => {
 
 const useDummyData = (userId, boardId) => {
 	const [final, setFinal] = useState(null);
-	const [state, setState] = useState([GetInitialData()]);
-
-	useEffect(() => {
-		if (!userId) return null;
-
-		var tasksTableRef = db.ref(`users/${userId}/boards/${boardId}/tasks`);
-
-		return tasksTableRef.on("value", (snap) => {
-			const documents = [];
-			if (snap !== undefined) {
-				snap.forEach((childSnapshot) => {
-					var item = { ...childSnapshot.val() };
-					item.uid = childSnapshot.key;
-					documents.push(item);
-				});
-			}
-
-			setState([documents]);
-		});
-	}, [userId, boardId]);
+	const [state] = useState([GetInitialData(), GetInitialData()]);
 
 	useEffect(() => {
 		const finalTasks = [];

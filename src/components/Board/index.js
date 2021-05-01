@@ -1,4 +1,5 @@
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
+import { db } from "../Firebase/fbConfig.js";
 
 const reorder = (list, startIndex, endIndex) => {
 	const result = Array.from(list);
@@ -68,7 +69,7 @@ const Task = ({ index, item, state, ind, setState }) => {
 	);
 };
 
-function Board({ state, setState, AddGroup, AddItem }) {
+function Board({ UserID, BoardID, state, setState, AddGroup, AddItem }) {
 	if (!state) {
 		return null;
 	}
@@ -80,22 +81,75 @@ function Board({ state, setState, AddGroup, AddItem }) {
 		if (!destination) {
 			return;
 		}
-		const sInd = +source.droppableId;
-		const dInd = +destination.droppableId;
 
-		if (sInd === dInd) {
-			const items = reorder(state[sInd], source.index, destination.index);
-			const newState = [...state];
-			newState[sInd] = items;
-			setState(newState);
+		//each column is a different droppableId
+		//use '+' to convert to a number type from the string
+		const sourceDropIndex = +source.droppableId;
+		const destinationDropIndex = +destination.droppableId;
+
+		//if the source and destination columnIds are the same then we drag within the same column
+		if (sourceDropIndex === destinationDropIndex) {
+			const items = reorder(
+				state[sourceDropIndex],
+				source.index,
+				destination.index
+			);
+
+			const stateClone = Array.from(state); //[...state];
+
+			//place all the items we've re-ordered into the right column
+			stateClone[sourceDropIndex] = items;
+			setState(stateClone);
 		} else {
-			const result = move(state[sInd], state[dInd], source, destination);
-			const newState = [...state];
-			newState[sInd] = result[sInd];
-			newState[dInd] = result[dInd];
+			const result = move(
+				state[sourceDropIndex],
+				state[destinationDropIndex],
+				source,
+				destination
+			);
+			const stateClone = Array.from(state); //[...state];
+			stateClone[sourceDropIndex] = result[sourceDropIndex];
+			stateClone[destinationDropIndex] = result[destinationDropIndex];
 
-			setState(newState.filter((group) => group.length));
+			//array filter to remove empty columns?
+			stateClone.filter((group) => group.length);
+			setState(stateClone);
 		}
+
+		var updates = {};
+
+		//updates["/user-posts/" + uid + "/" + newPostKey] = postData;
+
+		state.forEach((column) => {
+			column.forEach((row) => {
+				var postData = {
+					movieTitle: row.movieTitle,
+					priority: row.priority + 1,
+				};
+
+				updates[
+					"/users/" + UserID + "/boards/" + BoardID + "/tasks/" + row.uid
+				] = postData;
+
+				// console.log("UserID " + UserID);
+				// console.log("BoardID " + BoardID);
+				// console.log(element.uid);
+				// console.log(element.uid);
+				// console.log(element.priority);
+				// console.log(element.movieTitle);
+			});
+		});
+
+		db.ref()
+			.update(updates)
+			.then(function () {
+				console.log("Update Succeeded.");
+			})
+			.catch(function (error) {
+				console.log("Update Failed: " + error.message);
+			});
+
+		console.log("\n\n\n");
 	}
 
 	return (

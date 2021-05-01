@@ -338,6 +338,8 @@ const Landing = () => {
 			<button onClick={funcLogOut}>Log out</button>
 			{false ? <MovieListView /> : null}
 			<Board
+				UserID={myUserId}
+				BoardID={boardId}
 				state={state} //removed dependency on data structure
 				setState={setState}
 				AddGroup={() => {
