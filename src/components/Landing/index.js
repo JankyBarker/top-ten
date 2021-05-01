@@ -282,8 +282,6 @@ function MovieListView(props) {
 }
 
 const Landing = () => {
-	//#region
-
 	//define {authError, user, funcLogOut } with weird js object destructuring bullshit
 	var { error: authError, currentUser: user, Logout: funcLogOut } = useAuth();
 
@@ -296,6 +294,8 @@ const Landing = () => {
 	// );
 
 	const [state, setState] = useState([getItems(10), getItems(5, 10)]);
+
+	//#region Authentication
 
 	//const [state, setState] = useDummyData();
 
