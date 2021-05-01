@@ -4,10 +4,12 @@ import { db } from "../components/Firebase/fbConfig.js";
 //https://console.firebase.google.com/project/top-ten-d9fc1/database/top-ten-d9fc1-default-rtdb/data
 
 const useTopTen = (userId, boardId) => {
-	const [tasks, setTasks] = useState(null);
-	const [final, setFinal] = useState(null);
+	const [workingData, setWorkingData] = useState(null);
+	const [FbData, setFbData] = useState(null);
 
 	useEffect(() => {
+		if (!userId) return null;
+
 		var tasksTableRef = db.ref(`users/${userId}/boards/${boardId}/tasks`);
 
 		return tasksTableRef.on("value", (snap) => {
@@ -20,24 +22,32 @@ const useTopTen = (userId, boardId) => {
 				});
 			}
 
-			setTasks(documents);
+			setFbData([documents]);
 		});
 	}, [userId, boardId]);
 
 	useEffect(() => {
-		const finalObject = {};
-		finalObject.tasks = [];
-		if (tasks) {
-			Object.keys(tasks).forEach((t, i) => {
-				var thing = Object.values(tasks)[t];
-				finalObject.tasks[i] = thing;
+		const finalTasks = [];
+
+		if (FbData) {
+			Object.keys(FbData).forEach((t, i) => {
+				var thing = Object.values(FbData)[t];
+				finalTasks[i] = thing;
 			});
 
-			setFinal(finalObject);
+			setWorkingData(finalTasks);
 		}
-	}, [tasks]);
+	}, [FbData]);
 
-	return { initialData: final, setInitialData: setFinal };
+	const AddItem = () => {
+		return [];
+	};
+
+	return {
+		initialData: workingData,
+		setInitialData: setWorkingData,
+		addItem: AddItem,
+	};
 };
 
 export default useTopTen;

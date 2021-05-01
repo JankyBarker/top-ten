@@ -7,7 +7,7 @@ import useTopTen from "../../hooks/useTopTen";
 import { v4 as uuidv4 } from "uuid";
 import { db } from "../Firebase/fbConfig.js";
 import Board from "../Board";
-import useDummyData from "../../hooks/useDummyData";
+//import useDummyData from "../../hooks/useDummyData";
 
 const TYPENAME_TASK = "task";
 
@@ -277,15 +277,20 @@ const Landing = () => {
 	//define {authError, user, funcLogOut } with weird js object destructuring bullshit
 	var { error: authError, currentUser: user, Logout: funcLogOut } = useAuth();
 
-	//var myUserId = user?.uid;
-	//const boardId = 0;
+	var myUserId = user?.uid;
+	const boardId = 0;
 
-	// const { initialData: state, setInitialData: setState } = useTopTen(
-	// 	myUserId,
-	// 	boardId
-	// );
+	//define {state, setState } with weird js object destructuring bullshit
+	const { initialData: state, setInitialData: setState, addItem } = useTopTen(
+		myUserId,
+		boardId
+	);
 
-	const [state, setState, addItem] = useDummyData();
+	// const {
+	// 	initialData: state,
+	// 	setInitialData: setState,
+	// 	addItem,
+	// } = useDummyData(myUserId, boardId);
 
 	//#region Authentication
 
