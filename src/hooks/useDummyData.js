@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState /*useEffect*/ } from "react";
 
 // fake data generator
 const getItems = (count, offset = 0) => {
@@ -9,24 +9,28 @@ const getItems = (count, offset = 0) => {
 };
 
 const useDummyData = (userId, boardId) => {
-	const [final, setFinal] = useState(null);
+	//const [final, setFinal] = useState(null);
 
 	const [state, setState] = useState([getItems(10), getItems(5, 10)]);
 
-	useEffect(() => {
-		const finalObject = {};
-		finalObject.tasks = [];
-		if (state) {
-			Object.keys(state).forEach((t, i) => {
-				var thing = Object.values(state)[t];
-				finalObject.tasks[i] = thing;
-			});
+	// useEffect(() => {
+	// 	const finalObject = {};
+	// 	finalObject.tasks = [];
+	// 	if (state) {
+	// 		Object.keys(state).forEach((t, i) => {
+	// 			var thing = Object.values(state)[t];
+	// 			finalObject.tasks[i] = thing;
+	// 		});
 
-			setFinal(finalObject);
-		}
-	}, [state]);
+	// 		setFinal(finalObject);
+	// 	}
+	// }, [state]);
 
-	return [final, setState];
+	const AddItem = () => {
+		return getItems(1);
+	};
+
+	return [state, setState, AddItem];
 };
 
 export default useDummyData;

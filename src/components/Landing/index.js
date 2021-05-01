@@ -7,17 +7,9 @@ import useTopTen from "../../hooks/useTopTen";
 import { v4 as uuidv4 } from "uuid";
 import { db } from "../Firebase/fbConfig.js";
 import Board from "../Board";
-//import useDummyData from "../../hooks/useDummyData";
+import useDummyData from "../../hooks/useDummyData";
 
 const TYPENAME_TASK = "task";
-
-// fake data generator <---REFACTOR THIS AWAY into useDummyData?
-const getItems = (count, offset = 0) => {
-	return Array.from({ length: count }, (v, k) => k).map((k) => ({
-		uid: `item-${k + offset}-${new Date().getTime()}`,
-		movieTitle: `item ${k + offset}`,
-	}));
-};
 
 const SignInForm = () => {
 	const [email, setEmail] = useState("");
@@ -293,11 +285,9 @@ const Landing = () => {
 	// 	boardId
 	// );
 
-	const [state, setState] = useState([getItems(10), getItems(5, 10)]);
+	const [state, setState, addItem] = useDummyData();
 
 	//#region Authentication
-
-	//const [state, setState] = useDummyData();
 
 	if (!IsNetworkOnline())
 		return (
@@ -349,7 +339,7 @@ const Landing = () => {
 					setState([...state, []]);
 				}}
 				AddItem={() => {
-					setState([...state, getItems(1)]);
+					setState([...state, addItem()]);
 				}}
 			/>
 		</div>
