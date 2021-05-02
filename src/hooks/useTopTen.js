@@ -10,14 +10,18 @@ const useTopTen = (userId, boardId) => {
 	useEffect(() => {
 		if (!userId) return null;
 
-		var tasksTableRef = db.ref(`users/${userId}/boards/${boardId}/tasks`);
+		var tasksTableRef = db
+			.ref(`users/${userId}/boards/${boardId}/tasks`)
+			.orderByChild("priority");
 
 		return tasksTableRef.on("value", (snap) => {
 			const documents = [];
 			if (snap !== undefined) {
+				var index = 0;
 				snap.forEach((childSnapshot) => {
 					var item = { ...childSnapshot.val() };
 					item.uid = childSnapshot.key;
+					item.priority = index++;
 					documents.push(item);
 				});
 			}

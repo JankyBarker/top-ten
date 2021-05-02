@@ -100,6 +100,30 @@ function Board({ UserID, BoardID, state, setState, AddGroup, AddItem }) {
 			//place all the items we've re-ordered into the right column
 			stateClone[sourceDropIndex] = items;
 			setState(stateClone);
+
+			var updates = {};
+
+			stateClone.forEach((column) => {
+				column.forEach((row, index) => {
+					var postData = {
+						movieTitle: row.movieTitle,
+						priority: index,
+					};
+
+					updates[
+						"/users/" + UserID + "/boards/" + BoardID + "/tasks/" + row.uid
+					] = postData;
+				});
+			});
+
+			db.ref()
+				.update(updates)
+				.then(function () {
+					//console.log("Update Succeeded.");
+				})
+				.catch(function (error) {
+					console.log("Update Failed: " + error.message);
+				});
 		} else {
 			const result = move(
 				state[sourceDropIndex],
@@ -115,41 +139,6 @@ function Board({ UserID, BoardID, state, setState, AddGroup, AddItem }) {
 			stateClone.filter((group) => group.length);
 			setState(stateClone);
 		}
-
-		var updates = {};
-
-		//updates["/user-posts/" + uid + "/" + newPostKey] = postData;
-
-		state.forEach((column) => {
-			column.forEach((row) => {
-				var postData = {
-					movieTitle: row.movieTitle,
-					priority: row.priority + 1,
-				};
-
-				updates[
-					"/users/" + UserID + "/boards/" + BoardID + "/tasks/" + row.uid
-				] = postData;
-
-				// console.log("UserID " + UserID);
-				// console.log("BoardID " + BoardID);
-				// console.log(element.uid);
-				// console.log(element.uid);
-				// console.log(element.priority);
-				// console.log(element.movieTitle);
-			});
-		});
-
-		db.ref()
-			.update(updates)
-			.then(function () {
-				console.log("Update Succeeded.");
-			})
-			.catch(function (error) {
-				console.log("Update Failed: " + error.message);
-			});
-
-		console.log("\n\n\n");
 	}
 
 	return (
