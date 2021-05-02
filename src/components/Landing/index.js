@@ -72,22 +72,63 @@ const SignInForm = () => {
 	);
 };
 
-function SaveMovie(userId, boardId, title) {
-	console.log("SaveMovie/userId/" + userId);
-	console.log("SaveMovie/boardId/" + boardId);
-	console.log("SaveMovie/title/" + title);
+function AddToOrder(orderRef, newTaskId, taskList) {
+	//console.log(orderRef);
+
+	orderRef.transaction(
+		function (post) {
+			if (post) {
+				let postData = taskList.map((a) => a.uid);
+
+				postData.push(newTaskId);
+
+				//console.log(postData);
+
+				//this return will set the data
+				//returning undefined will abort the operation
+				return postData;
+			}
+			return post;
+		},
+		function (error, committed, snapshot) {
+			if (error) {
+				console.log("Transaction failed abnormally!", error);
+			} else if (!committed) {
+				console.log("No data committed.");
+			}
+
+			//console.log("New data: ", snapshot.val());
+		}
+	);
+}
+
+function AddMovie(userId, boardId, title, taskList) {
+	// console.log("SaveMovie/userId/" + userId);
+	// console.log("SaveMovie/boardId/" + boardId);
+	// console.log("SaveMovie/title/" + title);
 	//console.log("SaveMovie/priority/ " + priority);
 	//console.log("SaveMovie/description/ " + description);
 
-	var newMovieRef = db.ref(`users/${userId}/boards/${boardId}/tasks`).push();
+	const newMovieRef = db.ref(`users/${userId}/boards/${boardId}/tasks`).push();
+	const colIndex = 0; //just add the movie to the first column
 
-	newMovieRef.set({
-		movieTitle: title,
-		priority: 0,
-	});
+	const orderRef = db.ref(
+		`users/${userId}/boards/${boardId}/column/${colIndex}/order/`
+	);
+
+	newMovieRef
+		.set({
+			movieTitle: title,
+		})
+		.then(function () {
+			AddToOrder(orderRef, newMovieRef.key, taskList[colIndex]);
+		})
+		.catch(function (error) {
+			console.log("Synchronization failed");
+		});
 }
 
-const AddTask = ({ boardId, userId }) => {
+const AddTask = ({ boardId, userId, taskList }) => {
 	const addTask = (e) => {
 		e.preventDefault();
 
@@ -96,7 +137,7 @@ const AddTask = ({ boardId, userId }) => {
 
 		if (!title) return;
 
-		SaveMovie(userId, boardId, title);
+		AddMovie(userId, boardId, title, taskList);
 		e.target.elements.newTaskTitle.value = "";
 	};
 
@@ -138,7 +179,7 @@ const Landing = () => {
 	// } = useDummyData(myUserId, boardId);
 
 	if (!state) {
-		return <span>Data Error</span>;
+		return <span>Loading...</span>;
 	}
 
 	if (!Array.isArray(state) || !Array.isArray(state[0])) {
@@ -201,7 +242,7 @@ const Landing = () => {
 					setState([...state, addItem()]);
 				}}
 			/>
-			<AddTask boardId={boardId} userId={myUserId} />
+			<AddTask boardId={boardId} userId={myUserId} taskList={state} />
 		</div>
 	);
 };

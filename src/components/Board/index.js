@@ -58,9 +58,9 @@ const Task = ({ index, item, state, ind, setState }) => {
 			<button
 				type="button"
 				onClick={() => {
-					const newState = [...state];
-					newState[ind].splice(index, 1);
-					setState(newState.filter((group) => group.length));
+					// const newState = [...state];
+					// newState[ind].splice(index, 1);
+					// setState(newState.filter((group) => group.length));
 				}}
 			>
 				delete
@@ -106,6 +106,20 @@ function Board({ UserID, BoardID, state, setState, AddGroup, AddItem }) {
 			setState(stateClone);
 
 			var updates = {};
+
+			stateClone.forEach((column, colIndex) => {
+				let postData = column.map((a) => a.uid);
+
+				updates[
+					"/users/" +
+						UserID +
+						"/boards/" +
+						BoardID +
+						"/column/" +
+						colIndex +
+						"/order/"
+				] = postData;
+			});
 
 			stateClone.forEach((column) => {
 				column.forEach((row, index) => {
