@@ -71,7 +71,11 @@ const Task = ({ index, item, state, ind, setState }) => {
 
 function Board({ UserID, BoardID, state, setState, AddGroup, AddItem }) {
 	if (!state) {
-		return null;
+		return <span>Data: Loading</span>;
+	}
+
+	if (!Array.isArray(state) || !Array.isArray(state[0])) {
+		return <span>Board: Data Type Error: state not an array of arrays</span>;
 	}
 
 	function onDragEnd(result) {
