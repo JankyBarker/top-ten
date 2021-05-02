@@ -2,14 +2,10 @@ import React, { useState } from "react";
 import { IsNetworkOnline } from "../../utils/network";
 import UserProfile from "../UserProfile/UserProfile.js";
 import { useAuth } from "../../context/AuthContext.js";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import useTopTen from "../../hooks/useTopTen";
-import { v4 as uuidv4 } from "uuid";
 import { db } from "../Firebase/fbConfig.js";
 import Board from "../Board";
 //import useDummyData from "../../hooks/useDummyData";
-
-const TYPENAME_TASK = "task";
 
 const SignInForm = () => {
 	const [email, setEmail] = useState("");
@@ -91,7 +87,7 @@ function SaveMovie(userId, boardId, title) {
 	});
 }
 
-const AddTask = ({ boardId, userId, close }) => {
+const AddTask = ({ boardId, userId }) => {
 	const addTask = (e) => {
 		e.preventDefault();
 
@@ -114,164 +110,13 @@ const AddTask = ({ boardId, userId, close }) => {
 						<label htmlFor="newTaskTitle">Title:</label>
 						<input maxLength="45" required type="text" name="newTaskTitle" />
 					</div>
-
-					{/* <div>
-						<div>
-							<label htmlFor="priority">Priority: </label>
-							<select name="priority" defaultValue="low" className="select">
-								<option value="high">High</option>
-								<option value="medium">Medium</option>
-								<option value="low">Low</option>
-							</select>
-						</div>
-					</div> */}
 				</div>
-
-				{/* <div>
-					<label htmlFor="newTaskDescription">Description (optional):</label>
-					<textarea
-						name="desc"
-						defaultValue={description}
-						onChange={(e) => setDescription(e.target.value)}
-					/>
-				</div> */}
 
 				<button>Add Task</button>
 			</form>
 		</div>
 	);
 };
-
-const Task = ({ taskData, index }) => {
-	return (
-		<div>
-			<Draggable key={taskData.uid} draggableId={taskData.uid} index={index}>
-				{(provided, snapshot) => (
-					<div
-						{...provided.draggableProps}
-						{...provided.dragHandleProps}
-						ref={provided.innerRef}
-					>
-						<div>
-							<h4>{taskData.movieTitle}</h4>
-						</div>
-					</div>
-				)}
-			</Draggable>
-		</div>
-	);
-};
-
-const Column = ({
-	column,
-	tasks,
-	allData,
-	boardId,
-	userId,
-	filterBy,
-	index,
-}) => {
-	return (
-		<>
-			<Draggable draggableId={column.id} index={index} key={column.id}>
-				{(provided) => (
-					<div {...provided.draggableProps} ref={provided.innerRef}>
-						<div>
-							<div {...provided.dragHandleProps}></div>
-							<Droppable
-								key={column.id}
-								droppableId={column.id}
-								type={TYPENAME_TASK}
-							>
-								{(provided) => (
-									<div {...provided.droppableProps} ref={provided.innerRef}>
-										{tasks?.map((t, i) => (
-											<Task taskData={t} index={i} />
-										))}
-										{provided.placeholder}
-									</div>
-								)}
-							</Droppable>
-						</div>
-					</div>
-				)}
-			</Draggable>
-		</>
-	);
-};
-
-function MovieListView(props) {
-	const boardId = 0;
-
-	const { currentUser: user } = useAuth();
-
-	var myUserId = user.uid;
-
-	const { initialData } = useTopTen(myUserId, boardId);
-
-	const handleOnDragEnd = (result) => {
-		if (result.type === TYPENAME_TASK) {
-			console.log("drag task");
-			return;
-		}
-
-		console.log("drag column");
-	};
-
-	if (!initialData || !initialData.tasks) {
-		return <span>Data Error</span>;
-	}
-
-	if (typeof initialData !== "object") {
-		return <span>Data Type Error: : InitialData not an object</span>;
-	}
-
-	if (!Array.isArray(initialData.tasks)) {
-		return <span>Data Type Error: InitialData.tasks not array</span>;
-	}
-
-	const tasks = initialData.tasks.map((t) => t);
-
-	const uid = uuidv4();
-
-	const column = { id: uid };
-
-	return (
-		<div className="App">
-			<header className="App-header">
-				<h1>My Top Ten</h1>
-				<AddTask
-					boardId={boardId}
-					userId={myUserId}
-					allCols={initialData.columnOrder}
-				/>
-
-				<DragDropContext onDragEnd={handleOnDragEnd}>
-					<Droppable
-						key="allCols"
-						droppableId="allCols"
-						type="column"
-						direction="horizontal"
-					>
-						{(provided) => (
-							<div {...provided.droppableProps} ref={provided.innerRef}>
-								<Column
-									column={column}
-									tasks={tasks}
-									allData={initialData}
-									key={uid}
-									boardId={boardId}
-									userId={myUserId}
-									index={0}
-								/>
-							</div>
-						)}
-					</Droppable>
-				</DragDropContext>
-			</header>
-		</div>
-	);
-}
 
 const Landing = () => {
 	//define {authError, user, funcLogOut } with weird js object destructuring bullshit
@@ -291,6 +136,14 @@ const Landing = () => {
 	// 	setInitialData: setState,
 	// 	addItem,
 	// } = useDummyData(myUserId, boardId);
+
+	if (!state) {
+		return <span>Data Error</span>;
+	}
+
+	if (!Array.isArray(state) || !Array.isArray(state[0])) {
+		return <span>Data Type Error: Top Ten State not array format</span>;
+	}
 
 	//#region Authentication
 
@@ -336,7 +189,6 @@ const Landing = () => {
 		<div>
 			<UserProfile name={userName} />
 			<button onClick={funcLogOut}>Log out</button>
-			{false ? <MovieListView /> : null}
 			<Board
 				UserID={myUserId}
 				BoardID={boardId}
@@ -349,6 +201,7 @@ const Landing = () => {
 					setState([...state, addItem()]);
 				}}
 			/>
+			<AddTask boardId={boardId} userId={myUserId} />
 		</div>
 	);
 };
