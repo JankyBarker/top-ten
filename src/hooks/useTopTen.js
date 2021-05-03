@@ -4,52 +4,72 @@ import { db } from "../components/Firebase/fbConfig.js";
 //https://console.firebase.google.com/project/top-ten-d9fc1/database/top-ten-d9fc1-default-rtdb/data
 
 const useTopTen = (userId, boardId) => {
-	const [workingData, setWorkingData] = useState(null);
-	const [FbData, setFbData] = useState(null);
+	const [RawTaskData, SetRawTaskData] = useState(null);
+	const [ColumnIndexData, setColumnIndexData] = useState(null);
+
+	const colIndex = 0; //just use first column for now
 
 	useEffect(() => {
 		if (!userId) return null;
 
-		var tasksTableRef = db
-			.ref(`users/${userId}/boards/${boardId}/tasks`)
-			.orderByChild("priority");
+		// var tasksTableRef = db
+		// 	.ref(`users/${userId}/boards/${boardId}/tasks`)
+		// 	.orderByChild("priority");
 
-		return tasksTableRef.on("value", (snap) => {
+		const ColumnIndexRefString = `users/${userId}/boards/${boardId}/columns/${colIndex}/`;
+
+		const ColumnIndexRef = db.ref(ColumnIndexRefString);
+
+		return ColumnIndexRef.on("value", (snap) => {
 			const documents = [];
+
 			if (snap !== undefined) {
-				var index = 0;
+				if (snap.val() === null) {
+					console.log(
+						"%c Error: " + ColumnIndexRefString + " - Not found",
+						"background: #2f8078"
+					);
+				}
 				snap.forEach((childSnapshot) => {
 					var item = { ...childSnapshot.val() };
-					item.uid = childSnapshot.key;
-					item.priority = index++;
+					item.uid = childSnapshot.val();
 					documents.push(item);
 				});
 			}
 
-			setFbData([documents]);
+			setColumnIndexData([documents]);
 		});
 	}, [userId, boardId]);
 
 	useEffect(() => {
-		const finalTasks = [];
+		if (!userId) return null;
 
-		if (FbData) {
-			Object.keys(FbData).forEach((t, i) => {
-				var thing = Object.values(FbData)[t];
-				finalTasks[i] = thing;
-			});
+		const tasksTableRefString = `users/${userId}/boards/${boardId}/tasks`;
+		var tasksTableRef = db.ref(tasksTableRefString);
 
-			setWorkingData(finalTasks);
-		}
-	}, [FbData]);
+		return tasksTableRef.on("value", (snap) => {
+			if (snap !== undefined) {
+				if (snap.val() === null) {
+					console.log(
+						"%c Error: " + tasksTableRefString + " - Not found",
+						"background: #2f8078"
+					);
+				}
+
+				SetRawTaskData(snap.val());
+			}
+		});
+	}, [userId, boardId]);
 
 	const AddItem = () => {
 		return [];
 	};
 
 	return {
-		initialData: workingData,
-		setInitialData: setWorkingData,
+		ColumnData: ColumnIndexData,
+		SetColumnData: setColumnIndexData,
+		TaskData: RawTaskData,
+		SetTaskData: SetRawTaskData,
 		addItem: AddItem,
 	};
 };

@@ -45,7 +45,9 @@ const getListStyle = (isDraggingOver) => ({
 	width: 250,
 });
 
-const Task = ({ index, item, state, ind, setState }) => {
+const Task = ({ index, item, state, ind, setState, tasks }) => {
+	//console.log(tasks[item.uid].movieTitle);
+
 	return (
 		<div>
 			<div
@@ -54,7 +56,7 @@ const Task = ({ index, item, state, ind, setState }) => {
 					justifyContent: "space-around",
 				}}
 			></div>
-			{item.movieTitle} {/*//dependency on item data structure */}
+			{tasks[item?.uid]?.movieTitle} {/*//dependency on item data structure */}
 			<button
 				type="button"
 				onClick={() => {
@@ -69,12 +71,20 @@ const Task = ({ index, item, state, ind, setState }) => {
 	);
 };
 
-function Board({ UserID, BoardID, state, setState, AddGroup, AddItem }) {
-	if (!state) {
+function Board({
+	UserID,
+	BoardID,
+	ColumnData,
+	SetColumnData,
+	TaskData,
+	AddGroup,
+	AddItem,
+}) {
+	if (!ColumnData) {
 		return <span>Data: Loading</span>;
 	}
 
-	if (!Array.isArray(state) || !Array.isArray(state[0])) {
+	if (!Array.isArray(ColumnData) || !Array.isArray(ColumnData[0])) {
 		return <span>Board: Data Type Error: state not an array of arrays</span>;
 	}
 
@@ -94,16 +104,16 @@ function Board({ UserID, BoardID, state, setState, AddGroup, AddItem }) {
 		//if the source and destination columnIds are the same then we drag within the same column
 		if (sourceDropIndex === destinationDropIndex) {
 			const items = reorder(
-				state[sourceDropIndex],
+				ColumnData[sourceDropIndex],
 				source.index,
 				destination.index
 			);
 
-			const stateClone = Array.from(state); //[...state];
+			const stateClone = Array.from(ColumnData); //[...state];
 
 			//place all the items we've re-ordered into the right column
 			stateClone[sourceDropIndex] = items;
-			setState(stateClone);
+			SetColumnData(stateClone);
 
 			var updates = {};
 
@@ -111,28 +121,22 @@ function Board({ UserID, BoardID, state, setState, AddGroup, AddItem }) {
 				let postData = column.map((a) => a.uid);
 
 				updates[
-					"/users/" +
-						UserID +
-						"/boards/" +
-						BoardID +
-						"/column/" +
-						colIndex +
-						"/order/"
+					`users/${UserID}/boards/${BoardID}/columns/${colIndex}/`
 				] = postData;
 			});
 
-			stateClone.forEach((column) => {
-				column.forEach((row, index) => {
-					var postData = {
-						movieTitle: row.movieTitle,
-						priority: index,
-					};
+			// stateClone.forEach((column) => {
+			// 	column.forEach((row, index) => {
+			// 		var postData = {
+			// 			movieTitle: row.movieTitle,
+			// 			priority: index,
+			// 		};
 
-					updates[
-						"/users/" + UserID + "/boards/" + BoardID + "/tasks/" + row.uid
-					] = postData;
-				});
-			});
+			// 		updates[
+			// 			"/users/" + UserID + "/boards/" + BoardID + "/tasks/" + row.uid
+			// 		] = postData;
+			// 	});
+			// });
 
 			db.ref()
 				.update(updates)
@@ -144,18 +148,18 @@ function Board({ UserID, BoardID, state, setState, AddGroup, AddItem }) {
 				});
 		} else {
 			const result = move(
-				state[sourceDropIndex],
-				state[destinationDropIndex],
+				ColumnData[sourceDropIndex],
+				ColumnData[destinationDropIndex],
 				source,
 				destination
 			);
-			const stateClone = Array.from(state); //[...state];
+			const stateClone = Array.from(ColumnData); //[...state];
 			stateClone[sourceDropIndex] = result[sourceDropIndex];
 			stateClone[destinationDropIndex] = result[destinationDropIndex];
 
 			//array filter to remove empty columns?
 			stateClone.filter((group) => group.length);
-			setState(stateClone);
+			SetColumnData(stateClone);
 		}
 	}
 
@@ -169,7 +173,7 @@ function Board({ UserID, BoardID, state, setState, AddGroup, AddItem }) {
 			</button>
 			<div style={{ display: "flex" }}>
 				<DragDropContext onDragEnd={onDragEnd}>
-					{state.map((el, ind) => (
+					{ColumnData.map((el, ind) => (
 						<Droppable key={ind} droppableId={`${ind}`}>
 							{(provided, snapshot) => (
 								<div
@@ -196,9 +200,10 @@ function Board({ UserID, BoardID, state, setState, AddGroup, AddItem }) {
 													<Task
 														index={index}
 														item={item}
-														state={state}
+														state={ColumnData}
 														ind={ind}
-														setState={setState}
+														setState={SetColumnData}
+														tasks={TaskData}
 													/>
 												</div>
 											)}

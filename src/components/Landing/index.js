@@ -73,22 +73,14 @@ const SignInForm = () => {
 };
 
 function AddToOrder(orderRef, newTaskId, taskList) {
-	//console.log(orderRef);
-
 	orderRef.transaction(
 		function (post) {
-			if (post) {
-				let postData = taskList.map((a) => a.uid);
+			let postData = taskList.map((a) => a.uid);
+			postData.push(newTaskId);
 
-				postData.push(newTaskId);
-
-				//console.log(postData);
-
-				//this return will set the data
-				//returning undefined will abort the operation
-				return postData;
-			}
-			return post;
+			//this return will set the data
+			//returning undefined will abort the operation
+			return postData;
 		},
 		function (error, committed, snapshot) {
 			if (error) {
@@ -97,7 +89,7 @@ function AddToOrder(orderRef, newTaskId, taskList) {
 				console.log("No data committed.");
 			}
 
-			//console.log("New data: ", snapshot.val());
+			console.log("AddToOrder : New data: ", snapshot.val());
 		}
 	);
 }
@@ -113,7 +105,7 @@ function AddMovie(userId, boardId, title, taskList) {
 	const colIndex = 0; //just add the movie to the first column
 
 	const orderRef = db.ref(
-		`users/${userId}/boards/${boardId}/column/${colIndex}/order/`
+		`users/${userId}/boards/${boardId}/columns/${colIndex}/`
 	);
 
 	newMovieRef
@@ -167,10 +159,11 @@ const Landing = () => {
 	const boardId = 0;
 
 	//define {state, setState } with weird js object destructuring bullshit
-	const { initialData: state, setInitialData: setState, addItem } = useTopTen(
-		myUserId,
-		boardId
-	);
+	const {
+		ColumnData: _columns,
+		SetColumnData: _setColumns,
+		TaskData: _tasks /*,addItem*/,
+	} = useTopTen(myUserId, boardId);
 
 	// const {
 	// 	initialData: state,
@@ -178,11 +171,11 @@ const Landing = () => {
 	// 	addItem,
 	// } = useDummyData(myUserId, boardId);
 
-	if (!state) {
+	if (!_columns) {
 		return <span>Loading...</span>;
 	}
 
-	if (!Array.isArray(state) || !Array.isArray(state[0])) {
+	if (!Array.isArray(_columns) || !Array.isArray(_columns[0])) {
 		return <span>Data Type Error: Top Ten State not array format</span>;
 	}
 
@@ -233,16 +226,17 @@ const Landing = () => {
 			<Board
 				UserID={myUserId}
 				BoardID={boardId}
-				state={state} //removed dependency on data structure
-				setState={setState}
+				ColumnData={_columns}
+				SetColumnData={_setColumns}
+				TaskData={_tasks}
 				AddGroup={() => {
-					setState([...state, []]);
+					//setState([...state, []]);
 				}}
 				AddItem={() => {
-					setState([...state, addItem()]);
+					//setState([...state, addItem()]);
 				}}
 			/>
-			<AddTask boardId={boardId} userId={myUserId} taskList={state} />
+			<AddTask boardId={boardId} userId={myUserId} taskList={_columns} />
 		</div>
 	);
 };
