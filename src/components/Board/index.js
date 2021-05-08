@@ -45,8 +45,10 @@ const getListStyle = (isDraggingOver) => ({
 	width: 250,
 });
 
-const Task = ({ index, item, state, ind, setState, tasks }) => {
+const Task = ({ index, item, state, ind, setState, tasks, removeTask }) => {
 	//console.log(tasks[item.uid].movieTitle);
+
+	if (!tasks) return <span>Loading: Tasks Null</span>;
 
 	return (
 		<div>
@@ -59,10 +61,8 @@ const Task = ({ index, item, state, ind, setState, tasks }) => {
 			{tasks[item?.uid]?.movieTitle} {/*//dependency on item data structure */}
 			<button
 				type="button"
-				onClick={() => {
-					// const newState = [...state];
-					// newState[ind].splice(index, 1);
-					// setState(newState.filter((group) => group.length));
+				onClick={function () {
+					removeTask(item.uid);
 				}}
 			>
 				delete
@@ -79,9 +79,14 @@ function Board({
 	TaskData,
 	AddGroup,
 	AddItem,
+	RemoveTask,
 }) {
 	if (!ColumnData) {
-		return <span>Data: Loading</span>;
+		return <span>Data: Loading Column Data</span>;
+	}
+
+	if (!TaskData) {
+		return <span>Data: Loading Task Data</span>;
 	}
 
 	if (!Array.isArray(ColumnData) || !Array.isArray(ColumnData[0])) {
@@ -204,6 +209,7 @@ function Board({
 														ind={ind}
 														setState={SetColumnData}
 														tasks={TaskData}
+														removeTask={RemoveTask}
 													/>
 												</div>
 											)}

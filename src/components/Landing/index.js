@@ -3,8 +3,8 @@ import { IsNetworkOnline } from "../../utils/network";
 import UserProfile from "../UserProfile/UserProfile.js";
 import { useAuth } from "../../context/AuthContext.js";
 import useTopTen from "../../hooks/useTopTen";
-import { db } from "../Firebase/fbConfig.js";
 import Board from "../Board";
+import ErrorBoundary from "../../utils/ErrorBoundary.js";
 //import useDummyData from "../../hooks/useDummyData";
 
 const SignInForm = () => {
@@ -16,11 +16,6 @@ const SignInForm = () => {
 
 	function onAttemptSignIn(event) {
 		event.preventDefault();
-		console.log("email is " + email);
-		console.log(email);
-		console.log("password is :");
-		console.log(password);
-
 		funcLoginEmail(email, password) //returns Promise
 			.then(() => {
 				//reset state
@@ -72,64 +67,24 @@ const SignInForm = () => {
 	);
 };
 
-function AddToOrder(orderRef, newTaskId, taskList) {
-	orderRef.transaction(
-		function (post) {
-			let postData = taskList.map((a) => a.uid);
-			postData.push(newTaskId);
+const AddTask = ({ boardId, userId, taskList, funcAddMovie }) => {
+	if (!funcAddMovie) {
+		return <span>Add Movie Function Invalid...</span>;
+	}
 
-			//this return will set the data
-			//returning undefined will abort the operation
-			return postData;
-		},
-		function (error, committed, snapshot) {
-			if (error) {
-				console.log("Transaction failed abnormally!", error);
-			} else if (!committed) {
-				console.log("No data committed.");
-			}
-
-			console.log("AddToOrder : New data: ", snapshot.val());
-		}
-	);
-}
-
-function AddMovie(userId, boardId, title, taskList) {
-	// console.log("SaveMovie/userId/" + userId);
-	// console.log("SaveMovie/boardId/" + boardId);
-	// console.log("SaveMovie/title/" + title);
-	//console.log("SaveMovie/priority/ " + priority);
-	//console.log("SaveMovie/description/ " + description);
-
-	const newMovieRef = db.ref(`users/${userId}/boards/${boardId}/tasks`).push();
-	const colIndex = 0; //just add the movie to the first column
-
-	const orderRef = db.ref(
-		`users/${userId}/boards/${boardId}/columns/${colIndex}/`
-	);
-
-	newMovieRef
-		.set({
-			movieTitle: title,
-		})
-		.then(function () {
-			AddToOrder(orderRef, newMovieRef.key, taskList[colIndex]);
-		})
-		.catch(function (error) {
-			console.log("Synchronization failed");
-		});
-}
-
-const AddTask = ({ boardId, userId, taskList }) => {
 	const addTask = (e) => {
 		e.preventDefault();
 
 		const title = e.target.elements.newTaskTitle.value;
-		//const priority = e.target.elements.priority.value;
 
 		if (!title) return;
 
-		AddMovie(userId, boardId, title, taskList);
+		//AddMovie(userId, boardId, title, taskList);
+
+		//console.log(funcAddMovie);
+
+		funcAddMovie(title);
+
 		e.target.elements.newTaskTitle.value = "";
 	};
 
@@ -162,7 +117,9 @@ const Landing = () => {
 	const {
 		ColumnData: _columns,
 		SetColumnData: _setColumns,
-		TaskData: _tasks /*,addItem*/,
+		TaskData: _tasks,
+		RemoveTask: _removeTask,
+		AddMovie: _addTask,
 	} = useTopTen(myUserId, boardId);
 
 	// const {
@@ -223,20 +180,30 @@ const Landing = () => {
 		<div>
 			<UserProfile name={userName} />
 			<button onClick={funcLogOut}>Log out</button>
-			<Board
-				UserID={myUserId}
-				BoardID={boardId}
-				ColumnData={_columns}
-				SetColumnData={_setColumns}
-				TaskData={_tasks}
-				AddGroup={() => {
-					//setState([...state, []]);
-				}}
-				AddItem={() => {
-					//setState([...state, addItem()]);
-				}}
-			/>
-			<AddTask boardId={boardId} userId={myUserId} taskList={_columns} />
+
+			<ErrorBoundary>
+				<Board
+					UserID={myUserId}
+					BoardID={boardId}
+					ColumnData={_columns}
+					SetColumnData={_setColumns}
+					TaskData={_tasks}
+					AddGroup={() => {
+						//setState([...state, []]);
+					}}
+					AddItem={() => {
+						//setState([...state, addItem()]);
+					}}
+					RemoveTask={_removeTask}
+				/>
+
+				<AddTask
+					boardId={boardId}
+					userId={myUserId}
+					taskList={_columns}
+					funcAddMovie={_addTask}
+				/>
+			</ErrorBoundary>
 		</div>
 	);
 };
