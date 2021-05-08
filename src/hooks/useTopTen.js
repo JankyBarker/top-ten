@@ -39,22 +39,16 @@ function RemoveFromTaskColumnOrder(orderRef, removeTaskId, taskList, taskRef) {
 					console.log("No data committed.");
 				}
 
-				console.log("RemoveFromTaskColumnOrder : New data: ", snapshot.val());
+				//console.log("RemoveFromTaskColumnOrder : New data: ", snapshot.val());
 			}
 		)
 		.then(function () {
-			//then->delete Task from Databse JSON
-			console.log("now delete the task");
+			//delete Task from Databse JSON
 			taskRef.remove();
 		})
 		.catch(function (error) {
 			console.log("Synchronization failed");
 		});
-}
-
-function RemoveMovie(orderRef, removeTaskId, taskList, taskRef) {
-	//transaction to remove movie from order list
-	RemoveFromTaskColumnOrder(orderRef, removeTaskId, taskList, taskRef);
 }
 
 function AddToOrder(orderRef, newTaskId, taskList) {
@@ -74,25 +68,18 @@ function AddToOrder(orderRef, newTaskId, taskList) {
 				console.log("No data committed.");
 			}
 
-			console.log("AddToOrder : New data: ", snapshot.val());
+			//console.log("AddToOrder : New data: ", snapshot.val());
 		}
 	);
 }
 
-function AddMovie(userId, boardId, title, taskList) {
-	const newMovieRef = db.ref(`users/${userId}/boards/${boardId}/tasks`).push();
-	const colIndex = 0; //just add the movie to the first column
-
-	const orderRef = db.ref(
-		`users/${userId}/boards/${boardId}/columns/${colIndex}/`
-	);
-
+function AddMovie(newMovieRef, orderRef, title, taskList) {
 	newMovieRef
 		.set({
 			movieTitle: title,
 		})
 		.then(function () {
-			AddToOrder(orderRef, newMovieRef.key, taskList[colIndex]);
+			AddToOrder(orderRef, newMovieRef.key, taskList);
 		})
 		.catch(function (error) {
 			console.log("Synchronization failed: " + error);
@@ -107,10 +94,6 @@ const useTopTen = (userId, boardId) => {
 
 	useEffect(() => {
 		if (!userId) return null;
-
-		// var tasksTableRef = db
-		// 	.ref(`users/${userId}/boards/${boardId}/tasks`)
-		// 	.orderByChild("priority");
 
 		const ColumnIndexRefString = `users/${userId}/boards/${boardId}/columns/${colIndex}/`;
 
@@ -158,15 +141,19 @@ const useTopTen = (userId, boardId) => {
 	}, [userId, boardId]);
 
 	function addMovie(_movieName) {
-		console.log("SaveMovie/userId/" + userId);
-		console.log("SaveMovie/boardId/" + boardId);
-		console.log("SaveMovie/title/" + _movieName);
-		AddMovie(userId, boardId, _movieName, ColumnIndexData);
+		const newMovieRef = db
+			.ref(`users/${userId}/boards/${boardId}/tasks`)
+			.push();
+		const colIndex = 0; //just add the movie to the first column
+
+		const orderRef = db.ref(
+			`users/${userId}/boards/${boardId}/columns/${colIndex}/`
+		);
+
+		AddMovie(newMovieRef, orderRef, _movieName, ColumnIndexData[colIndex]);
 	}
 
 	function deleteTask(_taskID) {
-		console.log("Deleting.. " + _taskID);
-
 		if (!_taskID) {
 			console.log("DeleteTask: Invalid ID");
 			return;
@@ -179,7 +166,12 @@ const useTopTen = (userId, boardId) => {
 			`users/${userId}/boards/${boardId}/tasks/${_taskID}`
 		);
 
-		RemoveMovie(ColumnIndexRef, _taskID, ColumnIndexData[colIndex], oldTaskRef);
+		RemoveFromTaskColumnOrder(
+			ColumnIndexRef,
+			_taskID,
+			ColumnIndexData[colIndex],
+			oldTaskRef
+		);
 	}
 
 	return {

@@ -76,12 +76,7 @@ const AddTask = ({ boardId, userId, taskList, funcAddMovie }) => {
 		e.preventDefault();
 
 		const title = e.target.elements.newTaskTitle.value;
-
 		if (!title) return;
-
-		//AddMovie(userId, boardId, title, taskList);
-
-		//console.log(funcAddMovie);
 
 		funcAddMovie(title);
 
