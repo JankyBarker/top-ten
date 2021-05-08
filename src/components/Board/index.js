@@ -78,7 +78,6 @@ function Board({
 	SetColumnData,
 	TaskData,
 	AddGroup,
-	AddItem,
 	RemoveTask,
 }) {
 	if (!ColumnData) {
@@ -172,9 +171,6 @@ function Board({
 		<div>
 			<button type="button" onClick={AddGroup}>
 				Add Group
-			</button>
-			<button type="button" onClick={AddItem}>
-				Add New Item
 			</button>
 			<div style={{ display: "flex" }}>
 				<DragDropContext onDragEnd={onDragEnd}>

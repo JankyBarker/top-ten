@@ -186,9 +186,6 @@ const Landing = () => {
 					AddGroup={() => {
 						//setState([...state, []]);
 					}}
-					AddItem={() => {
-						//setState([...state, addItem()]);
-					}}
 					RemoveTask={_removeTask}
 				/>
 
