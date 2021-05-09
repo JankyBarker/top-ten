@@ -45,7 +45,7 @@ const getListStyle = (isDraggingOver) => ({
 	width: 250,
 });
 
-const Task = ({ index, item, state, ind, setState, tasks, removeTask }) => {
+const Task = ({ item, ind, tasks, removeTask }) => {
 	//console.log(tasks[item.uid].movieTitle);
 
 	if (!tasks) return <span>Loading: Tasks Null</span>;
@@ -62,7 +62,7 @@ const Task = ({ index, item, state, ind, setState, tasks, removeTask }) => {
 			<button
 				type="button"
 				onClick={function () {
-					removeTask(item.uid);
+					removeTask(item.uid, ind);
 				}}
 			>
 				delete
@@ -113,13 +113,13 @@ function Board({
 				destination.index
 			);
 
-			const stateClone = Array.from(ColumnData); //[...state];
+			const stateClone = Array.from(ColumnData);
 
 			//place all the items we've re-ordered into the right column
 			stateClone[sourceDropIndex] = items;
 			SetColumnData(stateClone);
 
-			var updates = {};
+			let updates = {};
 
 			stateClone.forEach((column, colIndex) => {
 				let postData = column.map((a) => a.uid);
@@ -128,19 +128,6 @@ function Board({
 					`users/${UserID}/boards/${BoardID}/columns/${colIndex}/`
 				] = postData;
 			});
-
-			// stateClone.forEach((column) => {
-			// 	column.forEach((row, index) => {
-			// 		var postData = {
-			// 			movieTitle: row.movieTitle,
-			// 			priority: index,
-			// 		};
-
-			// 		updates[
-			// 			"/users/" + UserID + "/boards/" + BoardID + "/tasks/" + row.uid
-			// 		] = postData;
-			// 	});
-			// });
 
 			db.ref()
 				.update(updates)
@@ -161,9 +148,52 @@ function Board({
 			stateClone[sourceDropIndex] = result[sourceDropIndex];
 			stateClone[destinationDropIndex] = result[destinationDropIndex];
 
+			var arrayLength = stateClone.length;
+
+			function isEmpty(group) {
+				if (!group) {
+					return false;
+				}
+
+				return group.length;
+			}
+
 			//array filter to remove empty columns?
-			stateClone.filter((group) => group.length);
-			SetColumnData(stateClone);
+			let finalArray = stateClone.filter(isEmpty);
+			SetColumnData(finalArray);
+
+			let updates = {};
+
+			for (let i = 0; i < arrayLength; i++) {
+				let column = finalArray[i];
+				let colIndex = i;
+
+				let postData = column ? column.map((a) => a.uid) : null;
+				console.log(colIndex + " " + postData);
+
+				updates[
+					`users/${UserID}/boards/${BoardID}/columns/${colIndex}/`
+				] = postData;
+			}
+
+			// finalArray.forEach((column, colIndex) => {
+			// 	let postData = column.map((a) => a.uid);
+
+			// 	updates[
+			// 		`users/${UserID}/boards/${BoardID}/columns/${colIndex}/`
+			// 	] = postData;
+			// });
+
+			console.table(updates);
+
+			db.ref()
+				.update(updates)
+				.then(function () {
+					//console.log("Update Succeeded.");
+				})
+				.catch(function (error) {
+					console.log("Update Failed: " + error.message);
+				});
 		}
 	}
 
@@ -199,11 +229,8 @@ function Board({
 													)}
 												>
 													<Task
-														index={index}
 														item={item}
-														state={ColumnData}
 														ind={ind}
-														setState={SetColumnData}
 														tasks={TaskData}
 														removeTask={RemoveTask}
 													/>

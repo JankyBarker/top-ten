@@ -1,61 +1,27 @@
 import { useState, useEffect } from "react";
 import { db } from "../components/Firebase/fbConfig.js";
+import { v4 as uuidv4 } from "uuid";
 
 //https://console.firebase.google.com/project/top-ten-d9fc1/database/top-ten-d9fc1-default-rtdb/data
 
-function RemoveFromTaskColumnOrder(orderRef, removeTaskId, taskList, taskRef) {
-	//check arguments
+function SaveOrder(orderRef, taskList) {
+	if (!taskList) {
+		console.log(
+			"UseTopTen: AddToOrder: Invalid Firebase Database Task List Data"
+		);
+		return;
+	}
+
 	if (!orderRef) {
 		console.log(
-			"UseTopTen: RemoveMovie: Invalid Firebase Database Column Reference"
+			"UseTopTen: AddToOrder: Invalid Firebase Database Column Reference"
 		);
 		return;
 	}
 
-	if (!taskRef) {
-		console.log(
-			"UseTopTen: RemoveMovie: Invalid Firebase Database Task Reference"
-		);
-		return;
-	}
-
-	orderRef
-		.transaction(
-			function (post) {
-				let newArray = taskList.filter(function (ele) {
-					return ele.uid !== removeTaskId;
-				});
-
-				let postData = newArray.map((a) => a.uid);
-
-				//this return will set the data
-				//returning undefined will abort the operation
-				return postData;
-			},
-			function (error, committed, snapshot) {
-				if (error) {
-					console.log("Transaction failed abnormally!", error);
-				} else if (!committed) {
-					console.log("No data committed.");
-				}
-
-				//console.log("RemoveFromTaskColumnOrder : New data: ", snapshot.val());
-			}
-		)
-		.then(function () {
-			//delete Task from Databse JSON
-			taskRef.remove();
-		})
-		.catch(function (error) {
-			console.log("Synchronization failed");
-		});
-}
-
-function AddToOrder(orderRef, newTaskId, taskList) {
 	orderRef.transaction(
 		function (post) {
 			let postData = taskList.map((a) => a.uid);
-			postData.push(newTaskId);
 
 			//this return will set the data
 			//returning undefined will abort the operation
@@ -74,12 +40,23 @@ function AddToOrder(orderRef, newTaskId, taskList) {
 }
 
 function AddMovie(newMovieRef, orderRef, title, taskList) {
+	if (!newMovieRef) {
+		console.log("useTopTen/AddMovie: Database New Reference is invalid");
+		return;
+	}
+
+	if (!orderRef) {
+		console.log("useTopTen/AddMovie: Order Database Reference is invalid");
+		return;
+	}
+
 	newMovieRef
 		.set({
 			movieTitle: title,
 		})
 		.then(function () {
-			AddToOrder(orderRef, newMovieRef.key, taskList);
+			taskList.push({ uid: newMovieRef.key });
+			SaveOrder(orderRef, taskList);
 		})
 		.catch(function (error) {
 			console.log("Synchronization failed: " + error);
@@ -90,33 +67,43 @@ const useTopTen = (userId, boardId) => {
 	const [RawTaskData, SetRawTaskData] = useState(null);
 	const [ColumnIndexData, setColumnIndexData] = useState(null);
 
-	const colIndex = 0; //just use first column for now
-
 	useEffect(() => {
 		if (!userId) return null;
 
-		const ColumnIndexRefString = `users/${userId}/boards/${boardId}/columns/${colIndex}/`;
+		const dbRefString = `users/${userId}/boards/${boardId}/columns/`;
+		const ColumnsIndexRef = db.ref(dbRefString);
 
-		const ColumnIndexRef = db.ref(ColumnIndexRefString);
+		return ColumnsIndexRef.on("value", (dbColumnsIndexSnap) => {
+			if (!dbColumnsIndexSnap) return null;
 
-		return ColumnIndexRef.on("value", (snap) => {
-			const documents = [];
+			const columnIndices = [[]];
 
-			if (snap !== undefined) {
-				if (snap.val() === null) {
-					console.log(
-						"%c Error: " + ColumnIndexRefString + " - Not found",
-						"background: #2f8078"
-					);
-				}
-				snap.forEach((childSnapshot) => {
-					var item = {};
-					item.uid = childSnapshot.val();
-					documents.push(item);
+			if (dbColumnsIndexSnap.exists() && dbColumnsIndexSnap.val()) {
+				let dbValue = dbColumnsIndexSnap.val();
+
+				//0: ["-M_CVm-J9tnNX-2peD4Y", "-M_CXCFnp05GNxoDhRLB", "-M_CXCkXKxYe_WF_Pxi2"]
+				//1: ["-M_CYEaZilSmamVqGg1K"]
+
+				dbValue.forEach((it, index) => {
+					//0: ["-M_CVm-J9tnNX-2peD4Y", "-M_CXCFnp05GNxoDhRLB", "-M_CXCkXKxYe_WF_Pxi2"]
+					var columnTaskIds = [];
+					it.forEach((childIt) => {
+						var item = {};
+						item.uid = childIt;
+						columnTaskIds.push(item);
+					});
+
+					//ensure the array is overriden to prevent zombie items
+					columnIndices[index] = columnTaskIds;
 				});
+			} else {
+				console.log(
+					"%c Error: " + dbRefString + " - Not found",
+					"background: #2f8078"
+				);
 			}
 
-			setColumnIndexData([documents]);
+			setColumnIndexData(columnIndices);
 		});
 	}, [userId, boardId]);
 
@@ -140,38 +127,113 @@ const useTopTen = (userId, boardId) => {
 		});
 	}, [userId, boardId]);
 
-	function addMovie(_movieName) {
+	function addMovie(_movieName, _colIndex) {
+		if (_colIndex === null || _colIndex === undefined) {
+			console.log("useTopTen/addMovie/Invalid Column Index ");
+			return;
+		}
+
 		const newMovieRef = db
 			.ref(`users/${userId}/boards/${boardId}/tasks`)
 			.push();
-		const colIndex = 0; //just add the movie to the first column
 
 		const orderRef = db.ref(
-			`users/${userId}/boards/${boardId}/columns/${colIndex}/`
+			`users/${userId}/boards/${boardId}/columns/${_colIndex}/`
 		);
 
-		AddMovie(newMovieRef, orderRef, _movieName, ColumnIndexData[colIndex]);
+		const stateClone = Array.from(ColumnIndexData);
+
+		AddMovie(newMovieRef, orderRef, _movieName, stateClone[_colIndex]);
 	}
 
-	function deleteTask(_taskID) {
-		if (!_taskID) {
+	function addGroup() {
+		//setColumnIndexData;
+		console.log("adding group");
+
+		const stateClone = Array.from(ColumnIndexData);
+
+		const uid = uuidv4();
+
+		const _movieName = "temp " + uid;
+
+		const newMovieRef = db
+			.ref(`users/${userId}/boards/${boardId}/tasks`)
+			.push();
+
+		stateClone.push([]);
+
+		const _colIndex = stateClone.length - 1;
+
+		const orderRef = db.ref(
+			`users/${userId}/boards/${boardId}/columns/${_colIndex}/`
+		);
+
+		setColumnIndexData(stateClone);
+
+		AddMovie(newMovieRef, orderRef, _movieName, stateClone[_colIndex]);
+	}
+
+	function deleteTask(_taskID, _columnIndex) {
+		if (_taskID === undefined || _taskID === null) {
+			console.log("DeleteTask: Invalid ID");
+			return;
+		}
+		if (_columnIndex === undefined || _columnIndex === null) {
 			console.log("DeleteTask: Invalid ID");
 			return;
 		}
 
-		const ColumnIndexRefString = `users/${userId}/boards/${boardId}/columns/${colIndex}/`;
-		const ColumnIndexRef = db.ref(ColumnIndexRefString);
+		let newArray = ColumnIndexData[_columnIndex].filter(function (ele) {
+			return ele.uid !== _taskID;
+		});
+
+		const orderRef = db.ref(
+			`users/${userId}/boards/${boardId}/columns/${_columnIndex}/`
+		);
 
 		const oldTaskRef = db.ref(
 			`users/${userId}/boards/${boardId}/tasks/${_taskID}`
 		);
 
-		RemoveFromTaskColumnOrder(
-			ColumnIndexRef,
-			_taskID,
-			ColumnIndexData[colIndex],
-			oldTaskRef
-		);
+		orderRef
+			.transaction(
+				function (post) {
+					let postData = newArray.map((a) => a.uid);
+
+					//this return will set the data
+					//returning undefined will abort the operation
+					return postData;
+				},
+				function (error, committed, snapshot) {
+					if (error) {
+						console.log("Transaction failed abnormally!", error);
+					} else if (!committed) {
+						console.log("No data committed.");
+					}
+
+					console.log("AddToOrder : New data: ", snapshot.val());
+				}
+			)
+			.then(function () {
+				//delete Task from Databse JSON
+				oldTaskRef.remove();
+			})
+			.catch(function (error) {
+				console.log("Synchronization failed");
+			});
+
+		//setColumnIndexData(newColumnIndexData);
+
+		// const oldTaskRef = db.ref(
+		// 	`users/${userId}/boards/${boardId}/tasks/${_taskID}`
+		// );
+
+		// RemoveFromTaskColumnOrder(
+		// 	ColumnIndexRef,
+		// 	_taskID,
+		// 	ColumnIndexData[colIndex],
+		// 	oldTaskRef
+		// );
 	}
 
 	return {
@@ -180,6 +242,7 @@ const useTopTen = (userId, boardId) => {
 		TaskData: RawTaskData,
 		SetTaskData: SetRawTaskData,
 		AddMovie: addMovie,
+		AddGroup: addGroup,
 		RemoveTask: deleteTask,
 	};
 };

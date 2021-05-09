@@ -78,7 +78,7 @@ const AddTask = ({ boardId, userId, taskList, funcAddMovie }) => {
 		const title = e.target.elements.newTaskTitle.value;
 		if (!title) return;
 
-		funcAddMovie(title);
+		funcAddMovie(title, 0);
 
 		e.target.elements.newTaskTitle.value = "";
 	};
@@ -115,6 +115,7 @@ const Landing = () => {
 		TaskData: _tasks,
 		RemoveTask: _removeTask,
 		AddMovie: _addTask,
+		AddGroup: _addGroup,
 	} = useTopTen(myUserId, boardId);
 
 	// const {
@@ -183,9 +184,7 @@ const Landing = () => {
 					ColumnData={_columns}
 					SetColumnData={_setColumns}
 					TaskData={_tasks}
-					AddGroup={() => {
-						//setState([...state, []]);
-					}}
+					AddGroup={_addGroup}
 					RemoveTask={_removeTask}
 				/>
 
