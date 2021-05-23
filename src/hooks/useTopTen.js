@@ -70,7 +70,7 @@ const useTopTen = (userId, boardId) => {
 	useEffect(() => {
 		if (!userId) return null;
 
-		const dbRefString = `users/${userId}/boards/${boardId}/columns/`;
+		const dbRefString = `/boards/${boardId}/columns/`;
 		const ColumnsIndexRef = db.ref(dbRefString);
 
 		return ColumnsIndexRef.on("value", (dbColumnsIndexSnap) => {
@@ -110,7 +110,7 @@ const useTopTen = (userId, boardId) => {
 	useEffect(() => {
 		if (!userId) return null;
 
-		const tasksTableRefString = `users/${userId}/boards/${boardId}/tasks`;
+		const tasksTableRefString = `/boards/${boardId}/tasks`;
 		var tasksTableRef = db.ref(tasksTableRefString);
 
 		return tasksTableRef.on("value", (snap) => {
@@ -133,13 +133,9 @@ const useTopTen = (userId, boardId) => {
 			return;
 		}
 
-		const newMovieRef = db
-			.ref(`users/${userId}/boards/${boardId}/tasks`)
-			.push();
+		const newMovieRef = db.ref(`/boards/${boardId}/tasks`).push();
 
-		const orderRef = db.ref(
-			`users/${userId}/boards/${boardId}/columns/${_colIndex}/`
-		);
+		const orderRef = db.ref(`/boards/${boardId}/columns/${_colIndex}/`);
 
 		const stateClone = Array.from(ColumnIndexData);
 
@@ -156,17 +152,13 @@ const useTopTen = (userId, boardId) => {
 
 		const _movieName = "temp " + uid;
 
-		const newMovieRef = db
-			.ref(`users/${userId}/boards/${boardId}/tasks`)
-			.push();
+		const newMovieRef = db.ref(`/boards/${boardId}/tasks`).push();
 
 		stateClone.push([]);
 
 		const _colIndex = stateClone.length - 1;
 
-		const orderRef = db.ref(
-			`users/${userId}/boards/${boardId}/columns/${_colIndex}/`
-		);
+		const orderRef = db.ref(`/boards/${boardId}/columns/${_colIndex}/`);
 
 		setColumnIndexData(stateClone);
 
@@ -187,13 +179,9 @@ const useTopTen = (userId, boardId) => {
 			return ele.uid !== _taskID;
 		});
 
-		const orderRef = db.ref(
-			`users/${userId}/boards/${boardId}/columns/${_columnIndex}/`
-		);
+		const orderRef = db.ref(`/boards/${boardId}/columns/${_columnIndex}/`);
 
-		const oldTaskRef = db.ref(
-			`users/${userId}/boards/${boardId}/tasks/${_taskID}`
-		);
+		const oldTaskRef = db.ref(`/boards/${boardId}/tasks/${_taskID}`);
 
 		orderRef
 			.transaction(
@@ -211,29 +199,16 @@ const useTopTen = (userId, boardId) => {
 						console.log("No data committed.");
 					}
 
-					console.log("AddToOrder : New data: ", snapshot.val());
+					console.log("Delete task : New data: ", snapshot.val());
 				}
 			)
 			.then(function () {
-				//delete Task from Databse JSON
+				//delete Task from Database JSON
 				oldTaskRef.remove();
 			})
 			.catch(function (error) {
 				console.log("Synchronization failed");
 			});
-
-		//setColumnIndexData(newColumnIndexData);
-
-		// const oldTaskRef = db.ref(
-		// 	`users/${userId}/boards/${boardId}/tasks/${_taskID}`
-		// );
-
-		// RemoveFromTaskColumnOrder(
-		// 	ColumnIndexRef,
-		// 	_taskID,
-		// 	ColumnIndexData[colIndex],
-		// 	oldTaskRef
-		// );
 	}
 
 	return {

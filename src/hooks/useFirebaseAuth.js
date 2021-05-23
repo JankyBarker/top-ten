@@ -1,70 +1,74 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import "firebase/auth";
 import { firebase } from "../components/Firebase/fbConfig.js";
 
 const useFirebaseAuth = () => {
-	const [user, setUser] = useState(null);
-	const [error, setError] = useState(false);
+	const [FireBase_CurrentUser, setUser] = useState(null);
+	const [FireBase_Error, setError] = useState(false);
 
-	function onChange(newUser) {
-		setError(null);
+	const memoizedCallback = useCallback(
+		(newUser) => {
+			setError(null);
 
-		if (newUser) {
-			setUser(newUser);
-		} else {
-			setError("false User");
-			setUser(false);
-		}
-	}
+			if (FireBase_CurrentUser === newUser) {
+				return;
+			}
+
+			if (newUser) {
+				setUser(newUser);
+				//console.log(newUser.isAnonymous ? "Anon" : newUser.email);
+			} else {
+				setError("false User");
+				setUser(false);
+			}
+		},
+		[FireBase_CurrentUser]
+	);
 
 	useEffect(() => {
 		// listen for auth state changes
-		const unsubscribe = firebase.auth().onAuthStateChanged(onChange);
+		const unsubscribe = firebase.auth().onAuthStateChanged(memoizedCallback);
 
+		// Cleanup subscription on unmount
 		return function cleanup() {
 			unsubscribe();
-			//console.log("unsubbed");
 		};
-	}, []);
+	}, [memoizedCallback]);
 
-	const FireBaseLoginAnon = () => {
+	const FireBase_LoginAnon = () => {
 		setUser(null);
-		firebase
+		return firebase
 			.auth()
 			.signInAnonymously()
-			.then((user) => {
-				//console.log("Welcome Anon");
-				// 	//createBoardForAnons(user.user.uid)
-			})
-			.catch(function (error) {
-				// Handle Errors here.
-				var errorCode = error.code;
-				//var errorMessage = error.message;
-
-				if (errorCode === "auth/admin-restricted-operation") {
-					alert("You must enable Anonymous auth in the Firebase Console?");
-				} else {
-					console.error(error);
-				}
+			.then(function (userCredential) {
+				//set the user so that other dependents don't have to rely on onAuthStateChanged events
+				setUser(userCredential.user);
+				return userCredential;
 			});
 	};
 
-	const FireBaseLoginEmail = (email, password) => {
-		return firebase.auth().signInWithEmailAndPassword(email, password);
+	const FireBase_LoginEmail = (email, password) => {
+		return firebase
+			.auth()
+			.signInWithEmailAndPassword(email, password)
+			.then(function (userCredential) {
+				//set the user so that other dependents don't have to rely on onAuthStateChanged events
+				setUser(userCredential.user);
+				return userCredential;
+			}); //return promise
 	};
 
-	const FireBaseLogOut = () => {
+	const FireBase_LogOut = () => {
 		setUser(null);
-		firebase.auth().signOut();
+		return firebase.auth().signOut(); //return promise
 	};
 
 	const authAPI = {
-		error,
-		user,
-		setUser,
-		FireBaseLoginAnon,
-		FireBaseLoginEmail,
-		FireBaseLogOut,
+		AuthAPI_Error: FireBase_Error,
+		AuthAPI_CurrentUser: FireBase_CurrentUser,
+		AuthAPI_LoginAnon: FireBase_LoginAnon,
+		AuthAPI_LoginEmail: FireBase_LoginEmail,
+		AuthAPI_LogOut: FireBase_LogOut,
 	};
 
 	return authAPI;

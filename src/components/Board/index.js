@@ -1,4 +1,6 @@
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
+import { useParams } from "react-router";
+import useTopTen from "../../hooks/useTopTen.js";
 import { db } from "../Firebase/fbConfig.js";
 
 const reorder = (list, startIndex, endIndex) => {
@@ -45,6 +47,40 @@ const getListStyle = (isDraggingOver) => ({
 	width: 250,
 });
 
+const AddTask = ({ funcAddMovie }) => {
+	if (!funcAddMovie) {
+		return <span>Add Movie Function Invalid...</span>;
+	}
+
+	const addTask = (e) => {
+		e.preventDefault();
+
+		const title = e.target.elements.newTaskTitle.value;
+		if (!title) return;
+
+		funcAddMovie(title, 0);
+
+		e.target.elements.newTaskTitle.value = "";
+	};
+
+	return (
+		<div>
+			<form onSubmit={addTask} autoComplete="off">
+				<h4>Add a New Task</h4>
+
+				<div>
+					<div>
+						<label htmlFor="newTaskTitle">Title:</label>
+						<input maxLength="45" required type="text" name="newTaskTitle" />
+					</div>
+				</div>
+
+				<button>Add Task</button>
+			</form>
+		</div>
+	);
+};
+
 const Task = ({ item, ind, tasks, removeTask }) => {
 	//console.log(tasks[item.uid].movieTitle);
 
@@ -71,26 +107,23 @@ const Task = ({ item, ind, tasks, removeTask }) => {
 	);
 };
 
-function Board({
-	UserID,
-	BoardID,
-	ColumnData,
-	SetColumnData,
-	TaskData,
-	AddGroup,
-	RemoveTask,
-}) {
-	if (!ColumnData) {
-		return <span>Data: Loading Column Data</span>;
-	}
+function Board({ UserID }) {
+	const { boardId } = useParams();
 
-	if (!TaskData) {
-		return <span>Data: Loading Task Data</span>;
-	}
+	const {
+		ColumnData,
+		SetColumnData,
+		TaskData,
+		AddMovie,
+		AddGroup,
+		RemoveTask,
+	} = useTopTen(UserID, boardId);
 
-	if (!Array.isArray(ColumnData) || !Array.isArray(ColumnData[0])) {
-		return <span>Board: Data Type Error: state not an array of arrays</span>;
-	}
+	var taskDataFound =
+		ColumnData &&
+		TaskData &&
+		Array.isArray(ColumnData) &&
+		Array.isArray(ColumnData[0]);
 
 	function onDragEnd(result) {
 		const { source, destination } = result;
@@ -124,9 +157,7 @@ function Board({
 			stateClone.forEach((column, colIndex) => {
 				let postData = column.map((a) => a.uid);
 
-				updates[
-					`users/${UserID}/boards/${BoardID}/columns/${colIndex}/`
-				] = postData;
+				updates[`/boards/${boardId}/columns/${colIndex}/`] = postData;
 			});
 
 			db.ref()
@@ -171,18 +202,8 @@ function Board({
 				let postData = column ? column.map((a) => a.uid) : null;
 				console.log(colIndex + " " + postData);
 
-				updates[
-					`users/${UserID}/boards/${BoardID}/columns/${colIndex}/`
-				] = postData;
+				updates[`/boards/${boardId}/columns/${colIndex}/`] = postData;
 			}
-
-			// finalArray.forEach((column, colIndex) => {
-			// 	let postData = column.map((a) => a.uid);
-
-			// 	updates[
-			// 		`users/${UserID}/boards/${BoardID}/columns/${colIndex}/`
-			// 	] = postData;
-			// });
 
 			console.table(updates);
 
@@ -199,52 +220,57 @@ function Board({
 
 	return (
 		<div>
+			{taskDataFound ? (
+				<div style={{ display: "flex" }}>
+					<DragDropContext onDragEnd={onDragEnd}>
+						{ColumnData.map((el, ind) => (
+							<Droppable key={ind} droppableId={`${ind}`}>
+								{(provided, snapshot) => (
+									<div
+										ref={provided.innerRef}
+										style={getListStyle(snapshot.isDraggingOver)}
+										{...provided.droppableProps}
+									>
+										{el.map((item, index) => (
+											<Draggable
+												key={item.uid} //dependency on item data structure
+												draggableId={item.uid} //dependency on item data structure
+												index={index}
+											>
+												{(provided, snapshot) => (
+													<div
+														ref={provided.innerRef}
+														{...provided.draggableProps}
+														{...provided.dragHandleProps}
+														style={getItemStyle(
+															snapshot.isDragging,
+															provided.draggableProps.style
+														)}
+													>
+														<Task
+															item={item}
+															ind={ind}
+															tasks={TaskData}
+															removeTask={RemoveTask}
+														/>
+													</div>
+												)}
+											</Draggable>
+										))}
+										{provided.placeholder}
+									</div>
+								)}
+							</Droppable>
+						))}
+					</DragDropContext>
+				</div>
+			) : (
+				<span>Data: Loading Task Data</span>
+			)}
 			<button type="button" onClick={AddGroup}>
 				Add Group
 			</button>
-			<div style={{ display: "flex" }}>
-				<DragDropContext onDragEnd={onDragEnd}>
-					{ColumnData.map((el, ind) => (
-						<Droppable key={ind} droppableId={`${ind}`}>
-							{(provided, snapshot) => (
-								<div
-									ref={provided.innerRef}
-									style={getListStyle(snapshot.isDraggingOver)}
-									{...provided.droppableProps}
-								>
-									{el.map((item, index) => (
-										<Draggable
-											key={item.uid} //dependency on item data structure
-											draggableId={item.uid} //dependency on item data structure
-											index={index}
-										>
-											{(provided, snapshot) => (
-												<div
-													ref={provided.innerRef}
-													{...provided.draggableProps}
-													{...provided.dragHandleProps}
-													style={getItemStyle(
-														snapshot.isDragging,
-														provided.draggableProps.style
-													)}
-												>
-													<Task
-														item={item}
-														ind={ind}
-														tasks={TaskData}
-														removeTask={RemoveTask}
-													/>
-												</div>
-											)}
-										</Draggable>
-									))}
-									{provided.placeholder}
-								</div>
-							)}
-						</Droppable>
-					))}
-				</DragDropContext>
-			</div>
+			<AddTask funcAddMovie={AddMovie} />
 		</div>
 	);
 }

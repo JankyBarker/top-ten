@@ -5,30 +5,9 @@ const CountContext = React.createContext();
 //try using Reducer here? - see above
 
 function AuthProvider({ children }) {
-	const [users, setUsers] = React.useState([]);
-
-	//define {AuthError, currentUser, SetCurrentUser} with weird js object destructuring bullshit
-	const {
-		error: AuthError,
-		user: currentUser,
-		setUser: SetCurrentUser,
-		FireBaseLoginAnon: LoginAnon,
-		FireBaseLoginEmail: LoginEmail,
-		FireBaseLogOut: Logout,
-	} = useFirebaseAuth();
-
-	const CountAPI = {
-		AuthError,
-		users,
-		setUsers,
-		currentUser,
-		SetCurrentUser,
-		LoginAnon,
-		LoginEmail,
-		Logout,
-	};
+	const AuthAPI = useFirebaseAuth();
 	return (
-		<CountContext.Provider value={CountAPI}>{children}</CountContext.Provider>
+		<CountContext.Provider value={AuthAPI}>{children}</CountContext.Provider>
 	);
 }
 

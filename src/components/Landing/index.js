@@ -1,29 +1,57 @@
-import React, { useState } from "react";
-import { IsNetworkOnline } from "../../utils/network";
-import UserProfile from "../UserProfile/UserProfile.js";
+import React, { useRef, useState } from "react";
+//https://reactrouter.com/web/example/auth-workflow
+//https://usehooks.com/useAuth/
+import {
+	BrowserRouter,
+	Link,
+	Redirect,
+	Route,
+	Switch,
+	useHistory,
+	useLocation,
+} from "react-router-dom";
+//import UserProfile from "../UserProfile/UserProfile.js";
 import { useAuth } from "../../context/AuthContext.js";
-import useTopTen from "../../hooks/useTopTen";
-import Board from "../Board";
-import ErrorBoundary from "../../utils/ErrorBoundary.js";
+import useBoardList from "../../hooks/useBoardList";
+//import useTopTen from "../../hooks/useTopTen";
+//import Board from "../Board";
+//import ErrorBoundary from "../../utils/ErrorBoundary.js";
 //import useDummyData from "../../hooks/useDummyData";
+import assert from "../../utils/assert.js";
+import { IsNetworkOnline } from "../../utils/network";
+import Board from "../Board";
+import Home from "../Home";
 
 const SignInForm = () => {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState("");
 
-	var { LoginAnon: funcLoginAnon, LoginEmail: funcLoginEmail } = useAuth();
+	//define {funcLoginAnon, funcLoginEmail} with weird js object destructuring bullshit
+	var { AuthAPI_LoginAnon: funcLoginAnon, AuthAPI_LoginEmail: funcLoginEmail } =
+		useAuth();
+
+	let history = useHistory();
+	let location = useLocation();
+
+	assert(typeof funcLoginAnon !== "undefined", "funcLoginAnon: Undefined");
+	assert(typeof funcLoginEmail !== "undefined", "funcLoginEmail: Undefined");
+
+	let { from } = location.state || { from: { pathname: "/" } };
 
 	function onAttemptSignIn(event) {
 		event.preventDefault();
+
 		funcLoginEmail(email, password) //returns Promise
 			.then(() => {
 				//reset state
 				setEmail("");
 				setPassword("");
 
-				//go home
-				//this.props.history.push(ROUTES.HOME);
+				//after login
+				history.replace(from);
+
+				console.log("going to:" + from);
 			})
 			.catch((error) => {
 				setError(error);
@@ -32,13 +60,19 @@ const SignInForm = () => {
 
 	const loginAnonymously = (event) => {
 		event.preventDefault();
-		funcLoginAnon();
+
+		funcLoginAnon().then(() => {
+			//after login
+			history.replace(from);
+			console.log("going to:" + from.pathname);
+		});
 	};
 
 	const isInvalid = password === "" || email === "";
 
 	return (
 		<form>
+			<p>You must log in to view the page at {from.pathname}</p>
 			<input
 				name="email"
 				onChange={(event) => {
@@ -67,70 +101,156 @@ const SignInForm = () => {
 	);
 };
 
-const AddTask = ({ boardId, userId, taskList, funcAddMovie }) => {
-	if (!funcAddMovie) {
-		return <span>Add Movie Function Invalid...</span>;
+const AddBoardForm = ({ UserID: _UserID, CreateBoard: _createBoard }) => {
+	const [boardNameInputText, setBoardNameInputText] = useState("");
+	const inputEl = useRef(null);
+
+	if (!_UserID) {
+		return <span>UserID: Invalid</span>;
 	}
 
-	const addTask = (e) => {
-		e.preventDefault();
+	if (!_createBoard) {
+		return <span>CreateBoard: Invalid</span>;
+	}
 
-		const title = e.target.elements.newTaskTitle.value;
-		if (!title) return;
+	function onAttemptAddBoard(event) {
+		event.preventDefault();
 
-		funcAddMovie(title, 0);
+		if (!boardNameInputText || !_UserID) return;
 
-		e.target.elements.newTaskTitle.value = "";
-	};
+		_createBoard(_UserID, boardNameInputText)
+			.then(function () {
+				console.log("Wrote Board Successfully...");
+			})
+			.catch(function (error) {
+				console.log("Board Write Error: ", error);
+			});
+
+		setBoardNameInputText("");
+		inputEl.current.value = "";
+	}
+
+	const isInvalid = boardNameInputText === "";
 
 	return (
-		<div>
-			<form onSubmit={addTask} autoComplete="off">
-				<h4>Add a New Task</h4>
+		<form>
+			<input
+				ref={inputEl}
+				name="InputText_BoardName"
+				onChange={(event) => {
+					setBoardNameInputText(event.target.value);
+				}}
+				type="text"
+				placeholder="MyNewBoard"
+			/>
 
-				<div>
+			<button disabled={isInvalid} onClick={onAttemptAddBoard}>
+				Add Board
+			</button>
+		</form>
+	);
+};
+
+const STATIC_ROUTES = [
+	{
+		path: "/",
+		exact: true,
+		link: () => (
+			<li>
+				<Link to="/">Home</Link>
+			</li>
+		),
+		component: () => void 0,
+	},
+	{
+		path: "/public",
+		exact: false,
+		link: () => (
+			<li>
+				<Link to="/public">Public</Link>
+			</li>
+		),
+		component: (index) => (
+			<Route key={index} exact={false} path="/public">
+				<PublicPage />
+			</Route>
+		),
+	},
+	{
+		path: "/protected",
+		exact: false,
+		link: () => (
+			<li>
+				<Link to="/protected">Protected</Link>
+			</li>
+		),
+		component: (index) => (
+			<PrivateRoute key={index} exact={false} path="/protected">
+				<ProtectedPage />
+			</PrivateRoute>
+		),
+	},
+	{
+		path: "/login",
+		exact: false,
+		link: () => (
+			<li>
+				<Link to="/login">Login</Link>
+			</li>
+		),
+		component: (index) => (
+			<Route key={index} exact={false} path={"/login"}>
+				<SignInForm />
+			</Route>
+		),
+	},
+];
+
+const UserBoards = ({
+	UserID: _userId,
+	UserBoards: _boardData,
+	RemoveBoard: _removeBoard,
+}) => {
+	if (!_boardData) {
+		return <span>Loading</span>;
+	}
+	const keys = Object.keys(_boardData);
+
+	return (
+		<ul>
+			{keys.map((key) => (
+				<li key={key}>
 					<div>
-						<label htmlFor="newTaskTitle">Title:</label>
-						<input maxLength="45" required type="text" name="newTaskTitle" />
+						<Link to={`/board/${key}`}>
+							<h2>Board: {_boardData[key].title}</h2>
+						</Link>
+						<button
+							type="button"
+							onClick={function (event) {
+								event.preventDefault();
+								_removeBoard(_userId, key);
+							}}
+						>
+							delete
+						</button>
 					</div>
-				</div>
-
-				<button>Add Task</button>
-			</form>
-		</div>
+				</li>
+			))}
+		</ul>
 	);
 };
 
 const Landing = () => {
 	//define {authError, user, funcLogOut } with weird js object destructuring bullshit
-	var { error: authError, currentUser: user, Logout: funcLogOut } = useAuth();
+	var { AuthAPI_Error: authError, AuthAPI_CurrentUser: user } = useAuth();
 
 	var myUserId = user?.uid;
-	const boardId = 0;
 
-	//define {state, setState } with weird js object destructuring bullshit
 	const {
-		ColumnData: _columns,
-		SetColumnData: _setColumns,
-		TaskData: _tasks,
-		RemoveTask: _removeTask,
-		AddMovie: _addTask,
-		AddGroup: _addGroup,
-	} = useTopTen(myUserId, boardId);
-
-	// const {
-	// 	initialData: state,
-	// 	setInitialData: setState,
-	// 	addItem,
-	// } = useDummyData(myUserId, boardId);
-
-	if (!_columns) {
-		return <span>Loading...</span>;
-	}
-
-	if (!Array.isArray(_columns) || !Array.isArray(_columns[0])) {
-		return <span>Data Type Error: Top Ten State not array format</span>;
-	}
+		BoardData: _userBoards,
+		RemoveBoard: _removeBoard,
+		CreateBoard: _createBoard,
+	} = useBoardList(myUserId);
 
 	//#region Authentication
 
@@ -153,50 +273,121 @@ const Landing = () => {
 			</div>
 		);
 
-	var userName = "";
 	//Not logged in
 	if (user === false) {
 		// return <SignIn loginWithGoogle={null} signInAnon={null} />;
 		return <SignInForm />;
 	}
-	//state of loading
-	if (user === null) {
-		return <span>Loading</span>;
-	}
-
-	if (user.isAnonymous === true) {
-		userName = "Anon";
-	} else {
-		userName = user.email;
-	}
 
 	//#endregion
 
 	return (
-		<div>
-			<UserProfile name={userName} />
-			<button onClick={funcLogOut}>Log out</button>
+		<BrowserRouter>
+			<div style={{ display: "flex" }}>
+				<div
+					style={{
+						padding: "10px",
+						width: "40%",
+						background: "#f0f0f0",
+					}}
+				>
+					<ul style={{ listStyleType: "none", padding: 0 }}>
+						{STATIC_ROUTES.map((route, index) => (
+							<route.link key={index} />
+						))}
+					</ul>
+					<UserBoards
+						UserID={myUserId}
+						UserBoards={_userBoards}
+						RemoveBoard={_removeBoard}
+					/>
+					<AddBoardForm UserID={myUserId} CreateBoard={_createBoard} />
+				</div>
+			</div>
 
-			<ErrorBoundary>
-				<Board
-					UserID={myUserId}
-					BoardID={boardId}
-					ColumnData={_columns}
-					SetColumnData={_setColumns}
-					TaskData={_tasks}
-					AddGroup={_addGroup}
-					RemoveTask={_removeTask}
-				/>
+			<div>
+				<AuthButton />
+				<Switch>
+					{STATIC_ROUTES.map((route, index) => route.component(index))}
+				</Switch>
+			</div>
 
-				<AddTask
-					boardId={boardId}
-					userId={myUserId}
-					taskList={_columns}
-					funcAddMovie={_addTask}
-				/>
-			</ErrorBoundary>
-		</div>
+			<div>
+				<Home UserID={myUserId} />
+
+				<Route path="/board/:boardId">
+					<Board UserID={myUserId} />
+				</Route>
+			</div>
+		</BrowserRouter>
 	);
 };
 
 export default Landing;
+
+// A wrapper for <Route> that redirects to the login
+// screen if you're not yet authenticated.
+function PrivateRoute({ children, ...rest }) {
+	var { AuthAPI_CurrentUser: user } = useAuth();
+
+	return (
+		<Route
+			{...rest}
+			render={({ location }) =>
+				user ? (
+					children
+				) : (
+					<Redirect
+						to={{
+							pathname: "/login",
+							state: { from: location },
+						}}
+					/>
+				)
+			}
+		/>
+	);
+}
+
+function PublicPage() {
+	return <h3>Public</h3>;
+}
+
+function ProtectedPage() {
+	return <h3>Protected</h3>;
+}
+
+function AuthButton() {
+	//define {user, funcLogOut } with weird js object destructuring bullshit
+
+	var authAPI = useAuth();
+
+	var { AuthAPI_CurrentUser: user, AuthAPI_LogOut: funcLogOut } = authAPI;
+
+	let history = useHistory();
+
+	if (user === false) {
+		// return <SignIn loginWithGoogle={null} signInAnon={null} />;
+		return <p>You are not logged in. User False</p>;
+	}
+
+	//state of loading
+	if (user === null) {
+		return <p>You are not logged in. User NULL</p>;
+	}
+
+	return (
+		<p>
+			Welcome!{" "}
+			<button
+				onClick={() => {
+					funcLogOut().then(() => {
+						history.push("/");
+					});
+				}}
+			>
+				Sign out
+			</button>
+		</p>
+	);
+}

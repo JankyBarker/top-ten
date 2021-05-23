@@ -1,67 +1,64 @@
-import React, { useState, useEffect } from "react";
-
-import { AuthProvider, useAuth } from "../../context/AuthContext";
-
-import { useHotkeys } from "react-hotkeys-hook";
-
+import React /*,{ useState, useEffect }*/ from "react";
+import { AuthProvider /*, useAuth*/ } from "../../context/AuthContext";
+//import { useHotkeys } from "react-hotkeys-hook";
 import Landing from "../Landing";
 
-export const TimerComponent = () => {
-	const [timeCurrent, setTimeLeft] = useState(0);
+//https://reactrouter.com/web/example/auth-workflow
 
-	useEffect(() => {
-		const funcTimer = setTimeout(() => {
-			setTimeLeft(timeCurrent + 1);
-		}, 1000);
+// export const TimerComponent = () => {
+// 	const [timeCurrent, setTimeLeft] = useState(0);
 
-		// Clear timeout if the component is unmounted
-		return () => clearTimeout(funcTimer);
-	});
+// 	useEffect(() => {
+// 		const funcTimer = setTimeout(() => {
+// 			setTimeLeft(timeCurrent + 1);
+// 		}, 1000);
 
-	return <div>{<span>Count: {timeCurrent}</span>}</div>;
-};
+// 		// Clear timeout if the component is unmounted
+// 		return () => clearTimeout(funcTimer);
+// 	});
 
-const ExampleKeyComponent = () => {
-	const [count] = useState(0);
+// 	return <div>{<span>Count: {timeCurrent}</span>}</div>;
+// };
 
-	const { /*users: userList,*/ setUsers: funcSetUsers } = useAuth();
+// const ExampleKeyComponent = () => {
+// 	const [count] = useState(0);
 
-	useHotkeys("k", () =>
-		//prevList is react passing use the previous state
-		funcSetUsers((prevList) => [...prevList, "hellow", "world"])
-	);
+// 	const { /*users: userList,*/ setUsers: funcSetUsers } = useAuth();
 
-	return <p>Pressed {count} times.</p>;
-};
+// 	useHotkeys("k", () =>
+// 		//prevList is react passing use the previous state
+// 		funcSetUsers((prevList) => [...prevList, "hellow", "world"])
+// 	);
 
-const UserListComponent = () => {
-	//define {userList} with weird js object destructuring bullshit
-	const { users: userList } = useAuth();
+// 	return <p>Pressed {count} times.</p>;
+// };
 
-	const listItems = userList.map((item, i) => {
-		return <li key={i}>{item}</li>;
-	});
+// const UserListComponent = () => {
+// 	//define {userList} with weird js object destructuring bullshit
+// 	const { users: userList } = useAuth();
 
-	return <div>{listItems}</div>;
-};
+// 	const listItems = userList.map((item, i) => {
+// 		return <li key={i}>{item}</li>;
+// 	});
 
-function ResetButton() {
-	//define {setValue} with weird js object destructuring bullshit
-	const { setUsers: setValue } = useAuth();
+// 	return <div>{listItems}</div>;
+// };
 
-	return <button onClick={() => setValue([])}>Reset User List</button>;
-}
+// function ResetButton() {
+// 	//define {setValue} with weird js object destructuring bullshit
+// 	const { setUsers: setValue } = useAuth();
+
+// 	return <button onClick={() => setValue([])}>Reset User List</button>;
+// }
 
 function App() {
-	//const [user] = useFirebaseAuth();
-
 	return (
 		<div className="App">
 			<AuthProvider>
-				<ResetButton />
-				<UserListComponent />
-				<TimerComponent />
-				<ExampleKeyComponent />
+				{/* <ResetButton /> */}
+				{/* <UserListComponent /> */}
+				{/* <TimerComponent /> */}
+				{/* <ExampleKeyComponent /> */}
 				<Landing />
 			</AuthProvider>
 		</div>
