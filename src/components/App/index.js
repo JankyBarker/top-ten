@@ -33,30 +33,10 @@ import Landing from "../Landing";
 // 	return <p>Pressed {count} times.</p>;
 // };
 
-// const UserListComponent = () => {
-// 	//define {userList} with weird js object destructuring bullshit
-// 	const { users: userList } = useAuth();
-
-// 	const listItems = userList.map((item, i) => {
-// 		return <li key={i}>{item}</li>;
-// 	});
-
-// 	return <div>{listItems}</div>;
-// };
-
-// function ResetButton() {
-// 	//define {setValue} with weird js object destructuring bullshit
-// 	const { setUsers: setValue } = useAuth();
-
-// 	return <button onClick={() => setValue([])}>Reset User List</button>;
-// }
-
 function App() {
 	return (
 		<div className="App">
 			<AuthProvider>
-				{/* <ResetButton /> */}
-				{/* <UserListComponent /> */}
 				{/* <TimerComponent /> */}
 				{/* <ExampleKeyComponent /> */}
 				<Landing />
