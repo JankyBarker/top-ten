@@ -1,121 +1,13 @@
 
-:root {
-  --bg-gradient-from: #eef2ff;
-  --bg-gradient-stops: var(--bg-gradient-from), var(--tw-gradient-to, rgba(238, 242, 255, 0));
-}
-
+/* Blue to white background gradient
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
 
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-    /* background: url(assets/background.jpg) no-repeat center center fixed;
-    background-size: cover;
-    overflow-x: auto; */
-    background-image: linear-gradient(to right, var(--bg-gradient-stops));
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    background-image: linear-gradient(to right, #eef2ff, rgba(238, 242, 255, 0));
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
-}
-
-#app{
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: center;
-  height: 95%;
-  width: 100%;
-  /* margin: 20px; */
-}
-
-
-.MajorError {
-  padding: 3rem;
-  margin: 3rem;
-  font-size: 1.25rem;
-  line-height: 1.75rem;
-}
-
-.SignInBlock {
-  width: 100%;
-  padding-top: 6rem;
-  padding-bottom: 6rem;
-  padding-left: 5rem;
-  padding-right: 5rem;
-   -webkit-justify-content: space-between;
-  justify-content: space-between;
-  font-family: "Circular";
-  /* display: -webkit-flex;
-  display: flex;
- box-sizing: border-box;
-  border: 0 solid #e5e7eb;
-  font-family: "Circular"; */
-  /* background: url(assets/background.jpg) no-repeat center center fixed; */
-}
-
-
-.SignInHeader {
-  font-size: 2rem; 
-  color: rgb(82,34,208);
-}
-
-
-.SignInCopy {
-  margin-top: 1.5rem;
-  font-size: 1.0rem;
-  line-height: 1.75rem;
-  color: rgba(75, 85, 99)
-}
-
-@media (min-width: 768px){
-  .SignInHeader {
-    font-size: 3rem; 
-  }
-  .SignInCopy {   
-    font-size: 1.5rem;
-  }
-}
-
-
-.SignInButtonDiv {
-  margin-top: 1.5rem;
-  line-height: 1.75rem;
-  display: -webkit-flex;
-  display: flex;
-}
-
-.BlueButton{
-  border-radius: .125rem;
-  padding-left: .5rem;
-  padding-right: .5rem;
-  padding-top: .25rem;
-  padding-bottom: .25rem;
-  margin-right: 1rem;
-  line-height: inherit;
-  color: rgba(243,244,246);
-  background-color: rgba(30,64,175);
-}
-
-.GreyButton{
-  border-radius: .125rem;
-  padding-left: .5rem;
-  padding-right: .5rem;
-  padding-top: .25rem;
-  padding-bottom: .25rem;
-  margin-right: 1rem;
-  line-height: inherit;
-  color: rgba(31,41,55);
-  background-color: transparent;
-}
-
-
-
-/* Animations */
+/* Everything fades in
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
 @keyframes fadein {
   from { opacity: 0; }
   to { opacity: 1; }

@@ -35,13 +35,11 @@ import Landing from "../Landing";
 
 function App() {
 	return (
-		<h1 id="app">
-			<AuthProvider>
-				{/* <TimerComponent /> */}
-				{/* <ExampleKeyComponent /> */}
-				<Landing />
-			</AuthProvider>
-		</h1>
+		<AuthProvider>
+			{/* <TimerComponent /> */}
+			{/* <ExampleKeyComponent /> */}
+			<Landing />
+		</AuthProvider>
 	);
 }
 
