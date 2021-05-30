@@ -8,7 +8,6 @@ import {
 	Route,
 	Switch,
 	useHistory,
-	useLocation,
 } from "react-router-dom";
 //import UserProfile from "../UserProfile/UserProfile.js";
 import { useAuth } from "../../context/AuthContext.js";
@@ -21,6 +20,7 @@ import assert from "../../utils/assert.js";
 import { IsNetworkOnline } from "../../utils/network";
 import Board from "../Board";
 import Home from "../Home";
+import SignIn from "../SignIn/index.js";
 
 const SignInForm = () => {
 	const [email, setEmail] = useState("");
@@ -32,12 +32,11 @@ const SignInForm = () => {
 		useAuth();
 
 	let history = useHistory();
-	let location = useLocation();
 
 	assert(typeof funcLoginAnon !== "undefined", "funcLoginAnon: Undefined");
 	assert(typeof funcLoginEmail !== "undefined", "funcLoginEmail: Undefined");
 
-	let { from } = location.state || { from: { pathname: "/" } };
+	let { from } = { from: { pathname: "/" } };
 
 	function onAttemptSignIn(event) {
 		event.preventDefault();
@@ -190,20 +189,6 @@ const STATIC_ROUTES = [
 			</PrivateRoute>
 		),
 	},
-	{
-		path: "/login",
-		exact: false,
-		link: () => (
-			<li>
-				<Link to="/login">Login</Link>
-			</li>
-		),
-		component: (index) => (
-			<Route key={index} exact={false} path={"/login"}>
-				<SignInForm />
-			</Route>
-		),
-	},
 ];
 
 const UserBoards = ({
@@ -256,7 +241,11 @@ const Landing = () => {
 
 	if (!IsNetworkOnline())
 		return (
-			<span>No Internet connection detected! Please connect and try again</span>
+			<div>
+				<h1 className="MajorError">
+					No Internet connection detected!Please connect and try again
+				</h1>
+			</div>
 		);
 
 	//error while logging in
@@ -272,6 +261,12 @@ const Landing = () => {
 				</button>
 			</div>
 		);
+
+	//Not logged in
+	if (user === false) {
+		// return <SignIn loginWithGoogle={null} signInAnon={null} />;
+		return <SignIn />;
+	}
 
 	//Not logged in
 	if (user === false) {

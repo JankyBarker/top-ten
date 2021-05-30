@@ -10,19 +10,20 @@ const useFirebaseAuth = () => {
 		(newUser) => {
 			setError(null);
 
-			if (FireBase_CurrentUser === newUser) {
-				return;
-			}
+			// if (FireBase_CurrentUser === newUser) {
+			// 	return;
+			// }
 
 			if (newUser) {
 				setUser(newUser);
 				//console.log(newUser.isAnonymous ? "Anon" : newUser.email);
 			} else {
-				setError("false User");
 				setUser(false);
 			}
 		},
-		[FireBase_CurrentUser]
+		[
+			/*FireBase_CurrentUser*/
+		]
 	);
 
 	useEffect(() => {

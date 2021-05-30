@@ -1,8 +1,19 @@
+
+:root {
+  --bg-gradient-from: #eef2ff;
+  --bg-gradient-stops: var(--bg-gradient-from), var(--tw-gradient-to, rgba(238, 242, 255, 0));
+}
+
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
+    /* background: url(assets/background.jpg) no-repeat center center fixed;
+    background-size: cover;
+    overflow-x: auto; */
+    background-image: linear-gradient(to right, var(--bg-gradient-stops));
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -12,62 +23,104 @@ code {
     monospace;
 }
 
-.characters {
-  list-style: none;
-  padding-left: 0;
-}
-
-.characters li {
+#app{
   display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
   align-items: center;
-  border: solid 2px #d0d0d0;
-  border-radius: .2em;
-  padding: .5em .8em .5em .5em;
-  margin-bottom: 1em;
-}
-
-.characters p {
-  max-width: none;
-  font-weight: bold;
-  margin: 0;
-}
-
-.characters-thumb {
-  overflow: hidden;
-  flex-shrink: 0;
-  width: 2em;
-  height: 2em;
-  background-color: #e8e8e8;
-  padding: .5em;
-  margin-right: .5em;
-}
-
-.characters-thumb img {
-  display: block;
+  height: 95%;
   width: 100%;
-  height: auto;
+  /* margin: 20px; */
+}
+
+
+.MajorError {
+  padding: 3rem;
+  margin: 3rem;
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+.SignInBlock {
+  width: 100%;
+  padding-top: 6rem;
+  padding-bottom: 6rem;
+  padding-left: 5rem;
+  padding-right: 5rem;
+   -webkit-justify-content: space-between;
+  justify-content: space-between;
+  font-family: "Circular";
+  /* display: -webkit-flex;
+  display: flex;
+ box-sizing: border-box;
+  border: 0 solid #e5e7eb;
+  font-family: "Circular"; */
+  /* background: url(assets/background.jpg) no-repeat center center fixed; */
+}
+
+
+.SignInHeader {
+  font-size: 2rem; 
+  color: rgb(82,34,208);
+}
+
+
+.SignInCopy {
+  margin-top: 1.5rem;
+  font-size: 1.0rem;
+  line-height: 1.75rem;
+  color: rgba(75, 85, 99)
+}
+
+@media (min-width: 768px){
+  .SignInHeader {
+    font-size: 3rem; 
+  }
+  .SignInCopy {   
+    font-size: 1.5rem;
+  }
+}
+
+
+.SignInButtonDiv {
+  margin-top: 1.5rem;
+  line-height: 1.75rem;
+  display: -webkit-flex;
+  display: flex;
+}
+
+.BlueButton{
+  border-radius: .125rem;
+  padding-left: .5rem;
+  padding-right: .5rem;
+  padding-top: .25rem;
+  padding-bottom: .25rem;
+  margin-right: 1rem;
+  line-height: inherit;
+  color: rgba(243,244,246);
+  background-color: rgba(30,64,175);
+}
+
+.GreyButton{
+  border-radius: .125rem;
+  padding-left: .5rem;
+  padding-right: .5rem;
+  padding-top: .25rem;
+  padding-bottom: .25rem;
+  margin-right: 1rem;
+  line-height: inherit;
+  color: rgba(31,41,55);
+  background-color: transparent;
 }
 
 
 
-.spinner {
-  color: #5222d0;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 70px;
-  text-indent: -9999em;
-  overflow: hidden;
-  width: 1em;
-  height: 1em;
-  border-radius: 50%;
-  margin: 72px auto;
-  margin-top: 200px;
-  position: relative;
-  -webkit-transform: translateZ(0);
-  -ms-transform: translateZ(0);
-  transform: translateZ(0);
-  -webkit-animation: load6 1.7s infinite ease, round 1.7s infinite ease;
-  animation: load6 1.7s infinite ease, round 1.7s infinite ease;
+/* Animations */
+@keyframes fadein {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+*{
+  animation: fadein 0.5s;
 }

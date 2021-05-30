@@ -35,13 +35,13 @@ import Landing from "../Landing";
 
 function App() {
 	return (
-		<div className="App">
+		<h1 id="app">
 			<AuthProvider>
 				{/* <TimerComponent /> */}
 				{/* <ExampleKeyComponent /> */}
 				<Landing />
 			</AuthProvider>
-		</div>
+		</h1>
 	);
 }
 
