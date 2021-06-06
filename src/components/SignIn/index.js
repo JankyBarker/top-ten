@@ -67,7 +67,7 @@ function SignIn() {
 								className="button button-primary"
 								href="http://getskeleton.com"
 							>
-								Try Skeleton
+								Try Top Ten!
 							</a>
 						</div>
 						<div className="one-half column phones">

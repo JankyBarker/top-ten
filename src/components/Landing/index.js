@@ -9,96 +9,12 @@ import {
 	Switch,
 	useHistory,
 } from "react-router-dom";
-//import UserProfile from "../UserProfile/UserProfile.js";
 import { useAuth } from "../../context/AuthContext.js";
 import useBoardList from "../../hooks/useBoardList";
-//import useTopTen from "../../hooks/useTopTen";
-//import Board from "../Board";
-//import ErrorBoundary from "../../utils/ErrorBoundary.js";
-//import useDummyData from "../../hooks/useDummyData";
-import assert from "../../utils/assert.js";
 import { IsNetworkOnline } from "../../utils/network";
 import Board from "../Board";
 import Home from "../Home";
 import SignIn from "../SignIn/index.js";
-
-const SignInForm = () => {
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
-	const [error, setError] = useState("");
-
-	//define {funcLoginAnon, funcLoginEmail} with weird js object destructuring bullshit
-	var { AuthAPI_LoginAnon: funcLoginAnon, AuthAPI_LoginEmail: funcLoginEmail } =
-		useAuth();
-
-	let history = useHistory();
-
-	assert(typeof funcLoginAnon !== "undefined", "funcLoginAnon: Undefined");
-	assert(typeof funcLoginEmail !== "undefined", "funcLoginEmail: Undefined");
-
-	let { from } = { from: { pathname: "/" } };
-
-	function onAttemptSignIn(event) {
-		event.preventDefault();
-
-		funcLoginEmail(email, password) //returns Promise
-			.then(() => {
-				//reset state
-				setEmail("");
-				setPassword("");
-
-				//after login
-				history.replace(from);
-
-				console.log("going to:" + from);
-			})
-			.catch((error) => {
-				setError(error);
-			});
-	}
-
-	const loginAnonymously = (event) => {
-		event.preventDefault();
-
-		funcLoginAnon().then(() => {
-			//after login
-			history.replace(from);
-			console.log("going to:" + from.pathname);
-		});
-	};
-
-	const isInvalid = password === "" || email === "";
-
-	return (
-		<form>
-			<p>You must log in to view the page at {from.pathname}</p>
-			<input
-				name="email"
-				onChange={(event) => {
-					setEmail(event.target.value);
-				}}
-				type="text"
-				placeholder="Email Address"
-			/>
-			<input
-				name="password"
-				onChange={(event) => {
-					setPassword(event.target.value);
-				}}
-				type="password"
-				placeholder="Password"
-			/>
-			<button disabled={isInvalid} onClick={onAttemptSignIn}>
-				Sign In
-			</button>
-			{error && <p>{error.message}</p>}
-
-			<button onClick={loginAnonymously}>
-				Continue as Guest <sup>*</sup>
-			</button>
-		</form>
-	);
-};
 
 const AddBoardForm = ({ UserID: _UserID, CreateBoard: _createBoard }) => {
 	const [boardNameInputText, setBoardNameInputText] = useState("");
@@ -266,12 +182,6 @@ const Landing = () => {
 	if (user === false) {
 		// return <SignIn loginWithGoogle={null} signInAnon={null} />;
 		return <SignIn />;
-	}
-
-	//Not logged in
-	if (user === false) {
-		// return <SignIn loginWithGoogle={null} signInAnon={null} />;
-		return <SignInForm />;
 	}
 
 	//#endregion
