@@ -107,8 +107,10 @@ const Task = ({ item, ind, tasks, removeTask }) => {
 	);
 };
 
-function Board({ UserID }) {
+function Board({ CurrentUserData: _userData }) {
 	const { boardId } = useParams();
+
+	const _currentUserID = _userData?.uid;
 
 	const {
 		ColumnData,
@@ -117,7 +119,7 @@ function Board({ UserID }) {
 		AddMovie,
 		AddGroup,
 		RemoveTask,
-	} = useTopTen(UserID, boardId);
+	} = useTopTen(_currentUserID, boardId);
 
 	var taskDataFound =
 		ColumnData &&

@@ -1,157 +1,17 @@
-import React, { useRef, useState } from "react";
+import React from "react";
 //https://reactrouter.com/web/example/auth-workflow
 //https://usehooks.com/useAuth/
-import {
-	BrowserRouter,
-	Link,
-	Redirect,
-	Route,
-	Switch,
-	useHistory,
-} from "react-router-dom";
+import { BrowserRouter, Route } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.js";
-import useBoardList from "../../hooks/useBoardList";
 import { IsNetworkOnline } from "../../utils/network";
 import Board from "../Board";
-import Home from "../Home";
+import BoardList from "../BoardList/index.js";
 import SignIn from "../SignIn/index.js";
-
-const AddBoardForm = ({ UserID: _UserID, CreateBoard: _createBoard }) => {
-	const [boardNameInputText, setBoardNameInputText] = useState("");
-	const inputEl = useRef(null);
-
-	if (!_UserID) {
-		return <span>UserID: Invalid</span>;
-	}
-
-	if (!_createBoard) {
-		return <span>CreateBoard: Invalid</span>;
-	}
-
-	function onAttemptAddBoard(event) {
-		event.preventDefault();
-
-		if (!boardNameInputText || !_UserID) return;
-
-		_createBoard(_UserID, boardNameInputText)
-			.then(function () {
-				console.log("Wrote Board Successfully...");
-			})
-			.catch(function (error) {
-				console.log("Board Write Error: ", error);
-			});
-
-		setBoardNameInputText("");
-		inputEl.current.value = "";
-	}
-
-	const isInvalid = boardNameInputText === "";
-
-	return (
-		<form>
-			<input
-				ref={inputEl}
-				name="InputText_BoardName"
-				onChange={(event) => {
-					setBoardNameInputText(event.target.value);
-				}}
-				type="text"
-				placeholder="MyNewBoard"
-			/>
-
-			<button disabled={isInvalid} onClick={onAttemptAddBoard}>
-				Add Board
-			</button>
-		</form>
-	);
-};
-
-const STATIC_ROUTES = [
-	{
-		path: "/",
-		exact: true,
-		link: () => (
-			<li>
-				<Link to="/">Home</Link>
-			</li>
-		),
-		component: () => void 0,
-	},
-	{
-		path: "/public",
-		exact: false,
-		link: () => (
-			<li>
-				<Link to="/public">Public</Link>
-			</li>
-		),
-		component: (index) => (
-			<Route key={index} exact={false} path="/public">
-				<PublicPage />
-			</Route>
-		),
-	},
-	{
-		path: "/protected",
-		exact: false,
-		link: () => (
-			<li>
-				<Link to="/protected">Protected</Link>
-			</li>
-		),
-		component: (index) => (
-			<PrivateRoute key={index} exact={false} path="/protected">
-				<ProtectedPage />
-			</PrivateRoute>
-		),
-	},
-];
-
-const UserBoards = ({
-	UserID: _userId,
-	UserBoards: _boardData,
-	RemoveBoard: _removeBoard,
-}) => {
-	if (!_boardData) {
-		return <span>Loading</span>;
-	}
-	const keys = Object.keys(_boardData);
-
-	return (
-		<ul>
-			{keys.map((key) => (
-				<li key={key}>
-					<div>
-						<Link to={`/board/${key}`}>
-							<h2>Board: {_boardData[key].title}</h2>
-						</Link>
-						<button
-							type="button"
-							onClick={function (event) {
-								event.preventDefault();
-								_removeBoard(_userId, key);
-							}}
-						>
-							delete
-						</button>
-					</div>
-				</li>
-			))}
-		</ul>
-	);
-};
 
 const Landing = () => {
 	//define {authError, user, funcLogOut } with weird js object destructuring bullshit
-	var { AuthAPI_Error: authError, AuthAPI_CurrentUser: user } = useAuth();
-
-	var myUserId = user?.uid;
-
-	const {
-		BoardData: _userBoards,
-		RemoveBoard: _removeBoard,
-		CreateBoard: _createBoard,
-	} = useBoardList(myUserId);
+	var { AuthAPI_Error: authError, AuthAPI_CurrentUser: authCurrentUser } =
+		useAuth();
 
 	//#region Authentication
 
@@ -179,120 +39,29 @@ const Landing = () => {
 		);
 
 	//Not logged in
-	if (user === false) {
+	if (false === authCurrentUser) {
 		// return <SignIn loginWithGoogle={null} signInAnon={null} />;
 		return <SignIn />;
+	}
+
+	if (null === authCurrentUser) {
+		// return <SignIn loginWithGoogle={null} signInAnon={null} />;
+		return <span>Loading...</span>;
 	}
 
 	//#endregion
 
 	return (
 		<BrowserRouter>
-			<div style={{ display: "flex" }}>
-				<div
-					style={{
-						padding: "10px",
-						width: "40%",
-						background: "#f0f0f0",
-					}}
-				>
-					<ul style={{ listStyleType: "none", padding: 0 }}>
-						{STATIC_ROUTES.map((route, index) => (
-							<route.link key={index} />
-						))}
-					</ul>
-					<UserBoards
-						UserID={myUserId}
-						UserBoards={_userBoards}
-						RemoveBoard={_removeBoard}
-					/>
-					<AddBoardForm UserID={myUserId} CreateBoard={_createBoard} />
-				</div>
-			</div>
+			<Route exact path="/">
+				<BoardList />
+			</Route>
 
-			<div>
-				<AuthButton />
-				<Switch>
-					{STATIC_ROUTES.map((route, index) => route.component(index))}
-				</Switch>
-			</div>
-
-			<div>
-				<Home UserID={myUserId} />
-
-				<Route path="/board/:boardId">
-					<Board UserID={myUserId} />
-				</Route>
-			</div>
+			<Route path="/board/:boardId">
+				<Board CurrentUserData={authCurrentUser} />
+			</Route>
 		</BrowserRouter>
 	);
 };
 
 export default Landing;
-
-// A wrapper for <Route> that redirects to the login
-// screen if you're not yet authenticated.
-function PrivateRoute({ children, ...rest }) {
-	var { AuthAPI_CurrentUser: user } = useAuth();
-
-	return (
-		<Route
-			{...rest}
-			render={({ location }) =>
-				user ? (
-					children
-				) : (
-					<Redirect
-						to={{
-							pathname: "/login",
-							state: { from: location },
-						}}
-					/>
-				)
-			}
-		/>
-	);
-}
-
-function PublicPage() {
-	return <h3>Public</h3>;
-}
-
-function ProtectedPage() {
-	return <h3>Protected</h3>;
-}
-
-function AuthButton() {
-	//define {user, funcLogOut } with weird js object destructuring bullshit
-
-	var authAPI = useAuth();
-
-	var { AuthAPI_CurrentUser: user, AuthAPI_LogOut: funcLogOut } = authAPI;
-
-	let history = useHistory();
-
-	if (user === false) {
-		// return <SignIn loginWithGoogle={null} signInAnon={null} />;
-		return <p>You are not logged in. User False</p>;
-	}
-
-	//state of loading
-	if (user === null) {
-		return <p>You are not logged in. User NULL</p>;
-	}
-
-	return (
-		<p>
-			Welcome!{" "}
-			<button
-				onClick={() => {
-					funcLogOut().then(() => {
-						history.push("/");
-					});
-				}}
-			>
-				Sign out
-			</button>
-		</p>
-	);
-}

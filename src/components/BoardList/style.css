@@ -1,0 +1,97 @@
+/* Sections
+  –––––––––––––––––––––––––––––––––––––––––––––––––– */
+.PagePadding {
+	padding: 4rem;
+}
+
+.header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.headerText {
+	font-size: 1.875rem;
+	line-height: 2.25rem;
+}
+
+.PageColumn {
+	display: flex;
+	flex-direction: column;
+}
+
+/* Board Boxes
+  –––––––––––––––––––––––––––––––––––––––––––––––––– */
+.boardContent {
+	margin-top: 2rem;
+}
+
+.boardContainer {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.boardTable {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.TrashIcon {
+	margin-left: 1.5rem;
+}
+
+.boardText {
+	font-size: 1rem;
+	line-height: 1rem;
+}
+
+.boardBox {
+	width: 100%;
+
+	margin-bottom: 0.75rem;
+	margin-right: 1rem;
+
+	padding-top: 1rem;
+	padding-bottom: 1rem;
+	padding-left: 1.5rem;
+	padding-right: 1.5rem;
+
+	box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.boardBoxContents {
+	display: flex;
+	align-items: center;
+
+	justify-content: space-between;
+}
+
+/* Bigger than 550 */
+@media (min-width: 550px) {
+	.PagePadding {
+		padding: 8rem;
+	}
+
+	.headerText {
+		font-size: 1.875rem;
+		line-height: 2.25rem;
+	}
+
+	/* Board Boxes become box grid instead of single column */
+	.boardBox {
+		width: auto;
+	}
+
+	.boardText {
+		font-size: 1rem;
+		line-height: 1rem;
+	}
+}
+
+/* Bigger than 750 */
+@media (min-width: 750px) {
+}
+
+/* Bigger than 1000 */
+@media (min-width: 1000px) {
+}
