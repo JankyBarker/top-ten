@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import "skeleton-css/css/normalize.css";
-import "skeleton-css/css/skeleton.css";
+// import "skeleton-css/css/normalize.css";
+// import "skeleton-css/css/skeleton.css";
 import PhoneImage from "../../assets/iphone.png";
 import { useAuth } from "../../context/AuthContext.js";
 import assert from "../../utils/assert.js";

@@ -69,13 +69,12 @@ function UserBoards({
 		<div className="boardContent">
 			<div className="boardContainer">
 				{keys.map((key) => (
-					<div class="boardBox" key={key}>
-						<div class="boardBoxContents">
-							{/* <h2 class="boardText">HELLO WORLD</h2> */}
+					<div className="boardBox" key={key}>
+						<div className="boardBoxContents">
 							<Link to={`/board/${key}`}>{_boardData[key].title}</Link>
 
 							<div
-								class="TrashIcon"
+								className="TrashIcon"
 								onClick={function (event) {
 									event.preventDefault();
 									_removeBoard(_userId, key);
@@ -108,15 +107,13 @@ function BoardList() {
 
 	return (
 		<div className="PagePadding">
+			<AuthHeader />
 			<AddBoardForm UserID={_userId} CreateBoard={_createBoard} />
-			<div className="PageColumn">
-				<AuthHeader />
-				<UserBoards
-					UserID={_userId}
-					UserBoards={_userBoards}
-					RemoveBoard={_removeBoard}
-				/>
-			</div>
+			<UserBoards
+				UserID={_userId}
+				UserBoards={_userBoards}
+				RemoveBoard={_removeBoard}
+			/>
 		</div>
 	);
 }
@@ -141,7 +138,7 @@ function AuthHeader() {
 
 	return (
 		<div className="header">
-			<h3 className="headerText">Welcome,Stranger</h3>
+			<h3 className="headerText">Welcome, Stranger</h3>
 			<button
 				onClick={() => {
 					funcLogOut().then(() => {

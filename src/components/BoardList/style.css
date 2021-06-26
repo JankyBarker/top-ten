@@ -15,10 +15,6 @@
 	line-height: 2.25rem;
 }
 
-.PageColumn {
-	display: flex;
-	flex-direction: column;
-}
 
 /* Board Boxes
   –––––––––––––––––––––––––––––––––––––––––––––––––– */
@@ -38,11 +34,6 @@
 
 .TrashIcon {
 	margin-left: 1.5rem;
-}
-
-.boardText {
-	font-size: 1rem;
-	line-height: 1rem;
 }
 
 .boardBox {
@@ -80,11 +71,6 @@
 	/* Board Boxes become box grid instead of single column */
 	.boardBox {
 		width: auto;
-	}
-
-	.boardText {
-		font-size: 1rem;
-		line-height: 1rem;
 	}
 }
 

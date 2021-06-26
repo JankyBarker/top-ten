@@ -3,6 +3,12 @@ import { useParams } from "react-router";
 import useTopTen from "../../hooks/useTopTen.js";
 import { db } from "../Firebase/fbConfig.js";
 
+// import "skeleton-css/css/normalize.css";
+// import "skeleton-css/css/skeleton.css";
+import "./style.css";
+
+import IconCheck from "../../assets/icon-check.svg";
+
 const reorder = (list, startIndex, endIndex) => {
 	const result = Array.from(list);
 	const [removed] = result.splice(startIndex, 1);
@@ -108,6 +114,44 @@ const Task = ({ item, ind, tasks, removeTask }) => {
 };
 
 function Board({ CurrentUserData: _userData }) {
+	return (
+		<div className="App-Page">
+			<div className="heading">
+				<div className="heading-first">
+					<h1>TODO</h1>
+				</div>
+				<div className="card">
+					<div className="card-item">
+						<div className="check-circle"></div>
+						<input
+							className="todo-input"
+							type="text"
+							title="New Todo input"
+							placeholder="Create a new todo..."
+						/>
+						<img src={IconCheck} alt="check-icon" />
+					</div>
+				</div>
+			</div>
+
+			<div className="grid-container">
+				<div className="rectangle"></div>
+				<div className="rectangle"></div>
+				<div className="rectangle"></div>
+				<div className="rectangle"></div>
+				<div className="rectangle"></div>
+				<div className="rectangle"></div>
+				<div className="rectangle"></div>
+				<div className="rectangle"></div>
+				<div className="rectangle"></div>
+				<div className="rectangle"></div>
+			</div>
+		</div>
+	);
+}
+
+//eslint-disable-next-line
+function Board_old({ CurrentUserData: _userData }) {
 	const { boardId } = useParams();
 
 	const _currentUserID = _userData?.uid;
