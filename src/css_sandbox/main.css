@@ -1,22 +1,193 @@
+:root {
+    --dark-mode-background-color: hsl(235, 24%, 19%);
+
+}
+
+
+
+
 /* Sections
   –––––––––––––––––––––––––––––––––––––––––––––––––– */
-.PagePadding {
-    /*    padding: 8rem 0 7rem;*/
+.BoardContainer {
 
-    padding: 4rem;
-    /*	text-align: center;*/
+    display: grid;
+    align-items: flex-start;
+    margin-left: .25rem;
+    margin-right: .25rem;
+    overflow-x: auto;
+    padding-top: .75rem;
+
+    grid-auto-flow: column;
+    grid-auto-columns: 220px;
+
 }
+
+.ColumnContainer {
+    margin-right: 1.25rem;
+    background: rgb(237, 242, 255);
+}
+
+.ColumnHeader {
+
+    background-image: linear-gradient(90deg, var(--tw-gradient-stops));
+    --tw-gradient-from: #1d4ed8;
+    --tw-gradient-stops: var(--tw-gradient-from), #2563eb, var(--tw-gradient-to, rgba(37, 99, 235, 0));
+    --tw-gradient-to: #3b82f6;
+    border-radius: .125rem;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding-top: .25rem;
+    padding-bottom: .25rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+
+.ColumnHeaderTextInput {
+
+    /*  this is the hidden text field that appears when clicked on */
+    display: none;
+
+
+    box-sizing: border-box;
+    border: 0 solid #e5e7eb;
+
+
+    margin: 0;
+    padding: 0;
+
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+
+    padding-left: .5rem;
+    padding-right: .5rem;
+
+    color: rgba(29, 78, 216, 1);
+
+    width: 83.333333%;
+
+}
+
+.ColumnHeaderText {
+
+    cursor: grab;
+
+    box-sizing: border-box;
+    border: 0 solid #e5e7eb;
+
+
+    margin: 0;
+    font-weight: inherit;
+
+    color: rgba(219, 234, 254, 1);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+}
+
+
+.TrashIcon {
+
+
+    cursor: pointer;
+
+    color: rgba(29, 78, 216, 1);
+    width: 19;
+    fill: none;
+    box-sizing: border-box;
+    border: 0 solid #e5e7eb;
+
+    display: block;
+    vertical-align: middle;
+    stroke: currentColor;
+}
+
+
+.ColumnContents {
+
+    --tw-ring-offset-shadow: 0 0 transparent;
+    --tw-ring-shadow: 0 0 transparent;
+    height: 100%;
+
+    padding-left: .5rem;
+    padding-right: .5rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+
+    --tw-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    box-shadow: var(--tw-ring-offset-shadow, 0 0 transparent), var(--tw-ring-shadow, 0 0 transparent), var(--tw-shadow);
+}
+
+
+.TaskContents {
+
+    --tw-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+    --tw-ring-offset-shadow: 0 0 transparent;
+    --tw-ring-shadow: 0 0 transparent;
+
+    background-color: white;
+    border-radius: .25rem;
+    margin-bottom: 1rem;
+
+    padding-left: .5rem;
+    padding-right: .5rem;
+    padding-top: .65rem;
+    padding-bottom: .65rem;
+    box-shadow: var(--tw-ring-offset-shadow, 0 0 transparent), var(--tw-ring-shadow, 0 0 transparent), var(--tw-shadow);
+
+
+    transition-property: box-shadow;
+    transition-timing-function: cubic-bezier(.4, 0, .2, 1);
+    transition-duration: .3s;
+
+
+    cursor: grab;
+}
+
+.TaskContents:hover {
+
+    --tw-ring-offset-shadow: 0 0 transparent;
+    --tw-ring-shadow: 0 0 transparent;
+
+    --tw-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+
+    box-shadow: var(--tw-ring-offset-shadow, 0 0 transparent), var(--tw-ring-shadow, 0 0 transparent), var(--tw-shadow);
+}
+
+
+
+.TaskText {
+
+    cursor: grab;
+
+    margin: 0;
+    font-weight: inherit;
+    font-size: 1rem;
+    line-height: 1.5rem;
+}
+
+
+
+.TaskFooter {
+
+    display: flex;
+    margin-top: .5rem;
+}
+
 
 
 /* Bigger than 550 */
 @media (min-width: 550px) {
 
 
-    .PagePadding {
-        /*    padding: 8rem 0 7rem;*/
-
-        padding: 8rem;
-
+    .BoardContainer {
         /*	text-align: center;*/
     }
 

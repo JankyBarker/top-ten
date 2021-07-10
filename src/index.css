@@ -13,6 +13,9 @@ body {
   to { opacity: 1; }
 }
 
-*{
+/* the '*' selects everything excluding stuff in the "not(" considition
+so use className="supress-anim" to stop an element from fading in.
+-------------------------------------------------- */
+*:not(.supress-anim){
   animation: fadein 0.5s;
 }

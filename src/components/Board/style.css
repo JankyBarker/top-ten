@@ -1,6 +1,7 @@
 :root {
 	--dark-mode-background-color: hsl(235, 24%, 19%);
-	--dark-mode-card-background: hsl(237, 14%, 26%);
+	--card-background: white;
+	--card-background-drag: blue;
 	--dark-mode-card-primary-text: hsl(234, 39%, 85%);
 	--dark-mode-card-dark-text: hsl(234, 11%, 52%);
 	--blue-text: hsl(220, 98%, 61%);
@@ -28,31 +29,31 @@
 
 /* Heading
   –––––––––––––––––––––––––––––––––––––––––––––––––– */
-
+/* 
 .heading {
-    /* width: 100%; */
-    /* max-width: 550px; */
-    /* text-align: center; */
+    width: 100%;
+    max-width: 550px;
+    text-align: center;
 }
 
 .heading-first {
-    /* display: flex; */
-    /* justify-content: space-between; */
-    /* margin-bottom: 2em; */
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2em;
 }
 
 .heading-first h1 {
-    /* font-size: 1.5em; */
-    /* font-weight: 700; */
-    /* letter-spacing: 0.6rem; */
+    font-size: 1.5em;
+    font-weight: 700;
+    letter-spacing: 0.6rem;
 }
 
 .todo-input {
-    /* width: 100%; */
-    /* color: var(--dark-mode-card-primary-text); */
-    /* background: none; */
-    /* border: none; */
-}
+    width: 100%; 
+    color: var(--dark-mode-card-primary-text);
+    background: none;
+    border: none;
+} */
 
 /* Cards Section
   –––––––––––––––––––––––––––––––––––––––––––––––––– */
@@ -72,9 +73,11 @@
 	background-color: #555;
   }
 
-.card {
-	/* width: 100%;
-	max-width: 550px;
+
+.card-column {
+
+	 width: 100%;
+/*	max-width: 550px;
 	margin-bottom: 1rem;
 	font-weight: 400;
 	font-size: 0.6em;
@@ -86,23 +89,35 @@
 	box-shadow: 1px 1px 3px var(--dark-mode-shadow);
  */
 	/* background-color: var(--dark-mode-card-background); */
-
-}
-
-.card.column {
 	/* box-shadow: 0px 15px 20px 5px var(--dark-mode-shadow); */
 }
 
 .card-item {
     display: flex;
 	width: 100%;
-
-	/* padding: 0.9rem 1.2rem;
+	padding: 0.9rem 1.2rem;
     border-radius: 5px;
     justify-content: flex-start;
-    align-items: center; */
+    align-items: center;
 
-	/* background-color: var(--dark-mode-card-background); */
+	margin-bottom: 8px;
+	border: 1px solid lightgray;
+	padding: 8px;
+	background-color: var(--card-background);
+}
+
+.card-item-drag {
+    display: flex;
+	width: 100%;
+	padding: 0.9rem 1.2rem;
+    border-radius: 5px;
+    justify-content: flex-start;
+    align-items: center;
+
+	margin-bottom: 8px;
+	border: 1px solid lightgray;
+	padding: 8px;
+	background-color: var(--card-background-drag);
 }
 
 
@@ -113,8 +128,8 @@
 .check-circle {
 	display: flex;
 
-	width: 1.8em;
-	height: 1.8em;
+	width: 1.2em;
+	height: 1.2em;
 	border-radius: 50%;
 	border: 1px solid var(--dark-mode-circle-color);
 	margin-right: 1.3em;
@@ -133,4 +148,8 @@
 	border-radius: 50%;
 	/* background-color: var(--dark-mode-card-background); */
 }
+
+/* .check-icon {
+
+} */
 

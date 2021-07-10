@@ -1,8 +1,8 @@
 import React, { useRef, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useHistory, Link } from "react-router-dom";
-import "skeleton-css/css/normalize.css";
-import "skeleton-css/css/skeleton.css";
+// import "skeleton-css/css/normalize.css";
+// import "skeleton-css/css/skeleton.css";
 import "./style.css";
 import { ReactComponent as TrashIcon } from "../../assets/trash.svg";
 import useBoardList from "../../hooks/useBoardList";

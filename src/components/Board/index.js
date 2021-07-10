@@ -1,126 +1,134 @@
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
-import { useParams } from "react-router";
-import useTopTen from "../../hooks/useTopTen.js";
-import { db } from "../Firebase/fbConfig.js";
 
 // import "skeleton-css/css/normalize.css";
 // import "skeleton-css/css/skeleton.css";
 import "./style.css";
 
 import IconCheck from "../../assets/icon-check.svg";
+import initialData from "./initial-data.js";
+import { useState } from "react";
 
-const reorder = (list, startIndex, endIndex) => {
-	const result = Array.from(list);
-	const [removed] = result.splice(startIndex, 1);
-	result.splice(endIndex, 0, removed);
+function Container({ children }) {
+	return <div>{children} </div>;
+}
 
-	return result;
-};
+function Title({ children }) {
+	return <h3>{children} </h3>;
+}
 
-/**
- * Moves an item from one list to another list.
- */
-const move = (source, destination, droppableSource, droppableDestination) => {
-	const sourceClone = Array.from(source);
-	const destClone = Array.from(destination);
-	const [removed] = sourceClone.splice(droppableSource.index, 1);
-
-	destClone.splice(droppableDestination.index, 0, removed);
-
-	const result = {};
-	result[droppableSource.droppableId] = sourceClone;
-	result[droppableDestination.droppableId] = destClone;
-
-	return result;
-};
-const grid = 8;
-
-const getItemStyle = (isDragging, draggableStyle) => ({
-	// some basic styles to make the items look a bit nicer
-	userSelect: "none",
-	padding: grid * 2,
-	margin: `0 0 ${grid}px 0`,
-
+const geColumnStyle = (isDragging) => ({
 	// change background colour if dragging
-	background: isDragging ? "lightgreen" : "grey",
-
-	// styles we need to apply on draggables
-	...draggableStyle,
-});
-const getListStyle = (isDraggingOver) => ({
-	background: isDraggingOver ? "lightblue" : "lightgrey",
-	padding: grid,
-	width: 250,
+	background: isDragging ? "lightgreen" : "white",
 });
 
-const AddTask = ({ funcAddMovie }) => {
-	if (!funcAddMovie) {
-		return <span>Add Movie Function Invalid...</span>;
-	}
+function TaskList({ isDraggingOver, children }) {
+	return <div style={geColumnStyle(isDraggingOver)}>{children} </div>;
+}
 
-	const addTask = (e) => {
-		e.preventDefault();
+//https://www.w3schools.com/react/react_css.asp - remember css in React is an object e.g. background-color
+//is turned into backgroundColor
 
-		const title = e.target.elements.newTaskTitle.value;
-		if (!title) return;
+function GetCSS(isDragging) {
+	return isDragging ? "card-item-drag" : "card-item";
+}
 
-		funcAddMovie(title, 0);
-
-		e.target.elements.newTaskTitle.value = "";
-	};
-
+function Task({ task, index }) {
 	return (
-		<div>
-			<form onSubmit={addTask} autoComplete="off">
-				<h4>Add a New Task</h4>
-
-				<div>
-					<div>
-						<label htmlFor="newTaskTitle">Title:</label>
-						<input maxLength="45" required type="text" name="newTaskTitle" />
+		<Draggable draggableId={task.id} index={index}>
+			{(provided, snapshot) => (
+				<div
+					{...provided.draggableProps}
+					{...provided.dragHandleProps}
+					ref={provided.innerRef}
+					// this needs to be a regular DOM object (a div) not a react component due to below (refs)
+					// https://github.com/atlassian/react-beautiful-dnd/blob/master/docs/guides/using-inner-ref.md
+				>
+					<div className={GetCSS(snapshot.isDragging)}>
+						<div className="check-circle"></div>
+						<div> {task.content} </div>
+						<div className="check-circle completed">
+							<img className="check-icon" src={IconCheck} alt="check-icon" />
+						</div>
 					</div>
 				</div>
-
-				<button>Add Task</button>
-			</form>
-		</div>
+			)}
+		</Draggable>
 	);
-};
+}
 
-const Task = ({ item, ind, tasks, removeTask }) => {
-	//console.log(tasks[item.uid].movieTitle);
-
-	if (!tasks) return <span>Loading: Tasks Null</span>;
-
+function Column({ column: _column, tasks: _tasks }) {
 	return (
-		<div>
-			<div
-				style={{
-					display: "flex",
-					justifyContent: "space-around",
-				}}
-			></div>
-			{tasks[item?.uid]?.movieTitle} {/*//dependency on item data structure */}
-			<button
-				type="button"
-				onClick={function () {
-					removeTask(item.uid, ind);
-				}}
-			>
-				delete
-			</button>
-		</div>
+		<Container>
+			<Title> {_column.title} </Title>
+			<Droppable droppableId={_column.id}>
+				{(provided, snapshot) => (
+					<div
+						ref={provided.innerRef}
+						{...provided.droppableProps}
+
+						// this needs to be a regular DOM object (a div) not a react component due to below (refs)
+						// https://github.com/atlassian/react-beautiful-dnd/blob/master/docs/guides/using-inner-ref.md
+					>
+						<TaskList isDraggingOver={snapshot.isDraggingOver}>
+							{_tasks.map((task, index) => (
+								<Task key={task.id} task={task} index={index} />
+							))}
+							{provided.placeholder}
+						</TaskList>
+					</div>
+				)}
+			</Droppable>
+		</Container>
 	);
-};
+}
 
 function Board({ CurrentUserData: _userData }) {
+	const [mainData, SetMainData] = useState(initialData);
+
+	function onDragEnd(result) {
+		const { source, destination, draggableId } = result;
+
+		// dropped outside the list
+		if (!destination) {
+			return;
+		}
+
+		if (
+			destination.droppableId === source.droppableId &&
+			destination.index === source.index
+		) {
+			return;
+		}
+
+		const column = mainData.columns[source.droppableId];
+		const newTaskIds = Array.from(column.taskIds);
+
+		newTaskIds.splice(source.index, 1);
+		newTaskIds.splice(destination.index, 0, draggableId);
+
+		const newColumn = {
+			...column,
+			taskIds: newTaskIds,
+		};
+
+		const newState = {
+			...mainData,
+			columns: {
+				...mainData.columns,
+				[newColumn.id]: newColumn,
+			},
+		};
+
+		SetMainData(newState);
+	}
+
 	return (
 		<div className="App-Page">
 			<div className="heading">
 				<div className="heading-first">
 					<h1>TODO</h1>
 				</div>
-				<div className="card">
+				<div className="card-column">
 					<div className="card-item">
 						<div className="check-circle"></div>
 						<input
@@ -129,194 +137,29 @@ function Board({ CurrentUserData: _userData }) {
 							title="New Todo input"
 							placeholder="Create a new todo..."
 						/>
-						<img src={IconCheck} alt="check-icon" />
+					</div>
+
+					<div className="card-item">
+						<div className="check-circle completed">
+							<img className="check-icon" src={IconCheck} alt="check-icon" />
+						</div>
+						<p className="task-completed">Complete online JavaScript course</p>
 					</div>
 				</div>
 			</div>
 
-			<div className="grid-container">
-				<div className="rectangle"></div>
-				<div className="rectangle"></div>
-				<div className="rectangle"></div>
-				<div className="rectangle"></div>
-				<div className="rectangle"></div>
-				<div className="rectangle"></div>
-				<div className="rectangle"></div>
-				<div className="rectangle"></div>
-				<div className="rectangle"></div>
-				<div className="rectangle"></div>
+			<div className="card-column">
+				<DragDropContext onDragEnd={onDragEnd}>
+					{mainData.columnOrder.map((columnId) => {
+						const column = mainData.columns[columnId];
+						const tasks = column.taskIds.map(
+							(taskId) => mainData.tasks[taskId]
+						);
+
+						return <Column key={columnId} column={column} tasks={tasks} />;
+					})}
+				</DragDropContext>
 			</div>
-		</div>
-	);
-}
-
-//eslint-disable-next-line
-function Board_old({ CurrentUserData: _userData }) {
-	const { boardId } = useParams();
-
-	const _currentUserID = _userData?.uid;
-
-	const {
-		ColumnData,
-		SetColumnData,
-		TaskData,
-		AddMovie,
-		AddGroup,
-		RemoveTask,
-	} = useTopTen(_currentUserID, boardId);
-
-	var taskDataFound =
-		ColumnData &&
-		TaskData &&
-		Array.isArray(ColumnData) &&
-		Array.isArray(ColumnData[0]);
-
-	function onDragEnd(result) {
-		const { source, destination } = result;
-
-		// dropped outside the list
-		if (!destination) {
-			return;
-		}
-
-		//each column is a different droppableId
-		//use '+' to convert to a number type from the string
-		const sourceDropIndex = +source.droppableId;
-		const destinationDropIndex = +destination.droppableId;
-
-		//if the source and destination columnIds are the same then we drag within the same column
-		if (sourceDropIndex === destinationDropIndex) {
-			const items = reorder(
-				ColumnData[sourceDropIndex],
-				source.index,
-				destination.index
-			);
-
-			const stateClone = Array.from(ColumnData);
-
-			//place all the items we've re-ordered into the right column
-			stateClone[sourceDropIndex] = items;
-			SetColumnData(stateClone);
-
-			let updates = {};
-
-			stateClone.forEach((column, colIndex) => {
-				let postData = column.map((a) => a.uid);
-
-				updates[`/boards/${boardId}/columns/${colIndex}/`] = postData;
-			});
-
-			db.ref()
-				.update(updates)
-				.then(function () {
-					//console.log("Update Succeeded.");
-				})
-				.catch(function (error) {
-					console.log("Update Failed: " + error.message);
-				});
-		} else {
-			const result = move(
-				ColumnData[sourceDropIndex],
-				ColumnData[destinationDropIndex],
-				source,
-				destination
-			);
-			const stateClone = Array.from(ColumnData); //[...state];
-			stateClone[sourceDropIndex] = result[sourceDropIndex];
-			stateClone[destinationDropIndex] = result[destinationDropIndex];
-
-			var arrayLength = stateClone.length;
-
-			function isEmpty(group) {
-				if (!group) {
-					return false;
-				}
-
-				return group.length;
-			}
-
-			//array filter to remove empty columns?
-			let finalArray = stateClone.filter(isEmpty);
-			SetColumnData(finalArray);
-
-			let updates = {};
-
-			for (let i = 0; i < arrayLength; i++) {
-				let column = finalArray[i];
-				let colIndex = i;
-
-				let postData = column ? column.map((a) => a.uid) : null;
-				console.log(colIndex + " " + postData);
-
-				updates[`/boards/${boardId}/columns/${colIndex}/`] = postData;
-			}
-
-			console.table(updates);
-
-			db.ref()
-				.update(updates)
-				.then(function () {
-					//console.log("Update Succeeded.");
-				})
-				.catch(function (error) {
-					console.log("Update Failed: " + error.message);
-				});
-		}
-	}
-
-	return (
-		<div>
-			{taskDataFound ? (
-				<div style={{ display: "flex" }}>
-					<DragDropContext onDragEnd={onDragEnd}>
-						{ColumnData.map((el, ind) => (
-							<Droppable key={ind} droppableId={`${ind}`}>
-								{(provided, snapshot) => (
-									<div
-										ref={provided.innerRef}
-										style={getListStyle(snapshot.isDraggingOver)}
-										{...provided.droppableProps}
-									>
-										{el.map((item, index) => (
-											<Draggable
-												key={item.uid} //dependency on item data structure
-												draggableId={item.uid} //dependency on item data structure
-												index={index}
-											>
-												{(provided, snapshot) => (
-													<div
-														ref={provided.innerRef}
-														{...provided.draggableProps}
-														{...provided.dragHandleProps}
-														style={getItemStyle(
-															snapshot.isDragging,
-															provided.draggableProps.style
-														)}
-													>
-														<Task
-															item={item}
-															ind={ind}
-															tasks={TaskData}
-															removeTask={RemoveTask}
-														/>
-													</div>
-												)}
-											</Draggable>
-										))}
-										{provided.placeholder}
-									</div>
-								)}
-							</Droppable>
-						))}
-					</DragDropContext>
-				</div>
-			) : (
-				<span>Data: Loading Task Data</span>
-			)}
-			<button type="button" onClick={AddGroup}>
-				Add Group
-			</button>
-			<AddTask funcAddMovie={AddMovie} />
 		</div>
 	);
 }
