@@ -12,101 +12,205 @@
 		hsl(192, 100%, 67%),
 		hsl(280, 87%, 65%)
 	);
-
-
 }
 
 
 .App-Page {
-    width: 100%;
-    height: 100%;
-    /* display: flex; */
-    /* flex-direction: column; */
-    /* align-items: center; */
-	/* background-color: var(--dark-mode-background-color); */
+    display: grid;
+    align-items: flex-start;
+    margin-left: .25rem;
+    margin-right: .25rem;
+    overflow-x: auto;
+    padding-top: .75rem;
+}
+
+.ColumnGrid {
+    display: grid;
+    align-items: flex-start;
+    margin-left: .25rem;
+    margin-right: .25rem;
+    overflow-x: auto;
+    padding-top: .75rem;
+
+    grid-auto-flow: column;
+    grid-auto-columns: 220px;
 }
 
 
-/* Heading
-  –––––––––––––––––––––––––––––––––––––––––––––––––– */
-/* 
-.heading {
-    width: 100%;
-    max-width: 550px;
-    text-align: center;
-}
 
-.heading-first {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 2em;
-}
 
-.heading-first h1 {
-    font-size: 1.5em;
-    font-weight: 700;
-    letter-spacing: 0.6rem;
-}
 
-.todo-input {
-    width: 100%; 
-    color: var(--dark-mode-card-primary-text);
-    background: none;
-    border: none;
-} */
-
-/* Cards Section
+/* Column Section
   –––––––––––––––––––––––––––––––––––––––––––––––––– */
 
-.grid-container {
-  display: grid;
-  grid-template-columns: 20% 1fr;
-  }
-
-  
-.rectangle {
-	height: 50px;
-	width: 100px;
-
-	margin: 1rem;
-
-	background-color: #555;
-  }
-
-
-.card-column {
-
-	 width: 100%;
-/*	max-width: 550px;
-	margin-bottom: 1rem;
-	font-weight: 400;
-	font-size: 0.6em;
-	border-radius: 5px;
-	color: var(--dark-mode-card-primary-text);
-	display: flex;
-	justify-content: flex-start;
-	align-items: center;
-	box-shadow: 1px 1px 3px var(--dark-mode-shadow);
- */
-	/* background-color: var(--dark-mode-card-background); */
-	/* box-shadow: 0px 15px 20px 5px var(--dark-mode-shadow); */
+  .ColumnContainer {
+    margin-right: 1.25rem;
+    background: rgb(237, 242, 255);
 }
 
-.card-item {
+
+.ColumnHeader {
+
+    background-image: linear-gradient(90deg, var(--tw-gradient-stops));
+    --tw-gradient-from: #1d4ed8;
+    --tw-gradient-stops: var(--tw-gradient-from), #2563eb, var(--tw-gradient-to, rgba(37, 99, 235, 0));
+    --tw-gradient-to: #3b82f6;
+    border-radius: .125rem;
+
     display: flex;
-	width: 100%;
-	padding: 0.9rem 1.2rem;
-    border-radius: 5px;
-    justify-content: flex-start;
     align-items: center;
+    justify-content: space-between;
 
-	margin-bottom: 8px;
-	border: 1px solid lightgray;
-	padding: 8px;
-	background-color: var(--card-background);
+    padding-top: .25rem;
+    padding-bottom: .25rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
 }
 
-.card-item-drag {
+
+.ColumnHeaderTextInput {
+
+    /*  this is the hidden text field that appears when clicked on */
+    display: none;
+
+
+    box-sizing: border-box;
+    border: 0 solid #e5e7eb;
+
+
+    margin: 0;
+    padding: 0;
+
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+
+    padding-left: .5rem;
+    padding-right: .5rem;
+
+    color: rgba(29, 78, 216, 1);
+
+    width: 83.333333%;
+
+}
+
+.ColumnHeaderText {
+
+    cursor: grab;
+
+    box-sizing: border-box;
+    border: 0 solid #e5e7eb;
+
+
+    margin: 0;
+    font-weight: inherit;
+
+    color: rgba(219, 234, 254, 1);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+}
+
+
+.TrashIcon {
+
+
+    cursor: pointer;
+
+    color: rgba(29, 78, 216, 1);
+    width: 19;
+    fill: none;
+    box-sizing: border-box;
+    border: 0 solid #e5e7eb;
+
+    display: block;
+
+    stroke: currentColor;
+}
+
+
+.ColumnContents {
+
+    --tw-ring-offset-shadow: 0 0 transparent;
+    --tw-ring-shadow: 0 0 transparent;
+    height: 100%;
+
+    padding-left: .5rem;
+    padding-right: .5rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+
+    --tw-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    box-shadow: var(--tw-ring-offset-shadow, 0 0 transparent), var(--tw-ring-shadow, 0 0 transparent), var(--tw-shadow);
+}
+
+
+/* Card Section
+  –––––––––––––––––––––––––––––––––––––––––––––––––– */
+
+
+
+  .TaskContents {
+
+    --tw-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+    --tw-ring-offset-shadow: 0 0 transparent;
+    --tw-ring-shadow: 0 0 transparent;
+
+    background-color: white;
+    border-radius: .25rem;
+    margin-bottom: 1rem;
+
+    padding-left: .5rem;
+    padding-right: .5rem;
+    padding-top: .65rem;
+    padding-bottom: .65rem;
+    box-shadow: var(--tw-ring-offset-shadow, 0 0 transparent), var(--tw-ring-shadow, 0 0 transparent), var(--tw-shadow);
+
+
+    transition-property: box-shadow;
+    transition-timing-function: cubic-bezier(.4, 0, .2, 1);
+    transition-duration: .3s;
+
+
+    cursor: grab;
+}
+
+.TaskContents:hover {
+
+    --tw-ring-offset-shadow: 0 0 transparent;
+    --tw-ring-shadow: 0 0 transparent;
+
+    --tw-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+
+    box-shadow: var(--tw-ring-offset-shadow, 0 0 transparent), var(--tw-ring-shadow, 0 0 transparent), var(--tw-shadow);
+}
+
+
+
+.TaskText {
+
+    cursor: grab;
+
+    margin: 0;
+    font-weight: inherit;
+    font-size: 1rem;
+    line-height: 1.5rem;
+}
+
+
+
+.TaskFooter {
+
+    display: flex;
+    margin-top: .5rem;
+}
+
+
+
+  .card-item-drag {
     display: flex;
 	width: 100%;
 	padding: 0.9rem 1.2rem;
@@ -149,7 +253,6 @@
 	/* background-color: var(--dark-mode-card-background); */
 }
 
-/* .check-icon {
 
-} */
+
 
