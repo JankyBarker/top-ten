@@ -1,12 +1,12 @@
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
+import { useParams } from "react-router";
+import useTopTen from "../../hooks/useTopTen.js";
 
 // import "skeleton-css/css/normalize.css";
 // import "skeleton-css/css/skeleton.css";
 import "./style.css";
 
 import IconCheck from "../../assets/icon-check.svg";
-import initialData from "./initial-data.js";
-import { useState } from "react";
 
 function UpIcon() {
 	return (
@@ -63,7 +63,7 @@ function ColumnHeader({ title }) {
 			<input
 				className="ColumnHeaderTextInput"
 				type="text"
-				id="columnName"
+				id={title}
 				name="columnName"
 				defaultValue="Hello World"
 			/>
@@ -103,10 +103,10 @@ function DraggableWrapper({ enableDragDrop, id, index, children }) {
 	);
 }
 
-function Task({ task, index }) {
+function Task({ id: _uniqueID, task: _task, index: _index }) {
 	return (
-		<DraggableWrapper enableDragDrop={true} id={task.id} index={index}>
-			<h4 className="TaskText">{task.content}</h4>
+		<DraggableWrapper enableDragDrop={true} id={_uniqueID} index={_index}>
+			<h4 className="TaskText">{_task.movieTitle}</h4>
 			<div className="TaskFooter">
 				<UpIcon />
 				<AlignCenterIcon />
@@ -117,9 +117,35 @@ function Task({ task, index }) {
 	);
 }
 
-function Column({ column: _column, tasks: _tasks, index: _index }) {
+function Column({ columnData: _columnData, tasks: _tasks, index: _index }) {
+	const columnid = `column-${_index}`;
+
+	if (null === _columnData) {
+		return <span>ColumnData Error...</span>;
+	}
+
+	if (null === _tasks) {
+		return <span>TaskData Error...</span>;
+	}
+
+	function WriteTaskElement(taskObject, index) {
+		const taskData = _tasks[taskObject.uid];
+		return (
+			<Task
+				key={taskObject.uid}
+				id={taskObject.uid}
+				task={taskData}
+				index={index}
+			/>
+		);
+	}
+
 	return (
-		<Draggable draggableId={_column.id} index={_index} key={_column.id}>
+		/* draggableId must be a unique string */
+		// index rule:
+		// 		Must be unique within a <Droppable /> (no duplicates)
+		// 		Must be consecutive. [0, 1, 2] and not [1, 2, 8]
+		<Draggable draggableId={columnid} index={_index} key={columnid}>
 			{(provided) => (
 				<div
 					{...provided.draggableProps}
@@ -129,9 +155,10 @@ function Column({ column: _column, tasks: _tasks, index: _index }) {
 					// https://github.com/atlassian/react-beautiful-dnd/blob/master/docs/guides/using-inner-ref.md
 				>
 					<div className="ColumnContainer">
-						<ColumnHeader title={_column.title} />
+						<ColumnHeader title={columnid} />
 
-						<Droppable droppableId={_column.id} type="task">
+						{/* droppableId must be a unique string */}
+						<Droppable droppableId={columnid} type="task">
 							{(provided, snapshot) => (
 								<div
 									ref={provided.innerRef}
@@ -141,9 +168,7 @@ function Column({ column: _column, tasks: _tasks, index: _index }) {
 									// this needs to be a regular DOM object (a div) not a react component due to below link (refs)
 									// https://github.com/atlassian/react-beautiful-dnd/blob/master/docs/guides/using-inner-ref.md
 								>
-									{_tasks.map((task, index) => (
-										<Task key={task.id} task={task} index={index} />
-									))}
+									{_columnData.map(WriteTaskElement)}
 									{provided.placeholder}
 								</div>
 							)}
@@ -155,17 +180,104 @@ function Column({ column: _column, tasks: _tasks, index: _index }) {
 	);
 }
 
+const reorder = (list, startIndex, endIndex) => {
+	const result = Array.from(list);
+	const [removed] = result.splice(startIndex, 1);
+	result.splice(endIndex, 0, removed);
+
+	return result;
+};
+
+//Moves an item from one list to another list.
+
+const move = (
+	source,
+	destination,
+	droppableSource,
+	droppableDestination,
+	sourceColumnDataIndex,
+	destColumnDataIndex
+) => {
+	const sourceClone = Array.from(source);
+	const destClone = Array.from(destination);
+
+	const [removed] = sourceClone.splice(droppableSource.index, 1);
+	destClone.splice(droppableDestination.index, 0, removed);
+
+	const result = {};
+	result[sourceColumnDataIndex] = sourceClone;
+	result[destColumnDataIndex] = destClone;
+
+	return result;
+};
+
 function Board({ CurrentUserData: _userData }) {
-	const [mainData, SetMainData] = useState(initialData);
+	const { boardId } = useParams();
+
+	const _currentUserID = _userData?.uid;
+
+	const {
+		ColumnData,
+		SetColumnData,
+		TaskData,
+		// eslint-disable-next-line
+		AddMovie,
+		AddGroup,
+		// eslint-disable-next-line
+		RemoveTask,
+		UpdateTaskOrder,
+	} = useTopTen(_currentUserID, boardId);
+
+	var taskDataFound =
+		ColumnData &&
+		TaskData &&
+		Array.isArray(ColumnData) &&
+		Array.isArray(ColumnData[0]);
+
+	if (false === taskDataFound || null === taskDataFound) {
+		return <span>Loading Board Data {boardId}...</span>;
+	}
+
+	function WriteColumnElements(_columnData, _index) {
+		const columnKey = `column-${_index}`;
+		return (
+			<Column
+				key={columnKey}
+				columnData={_columnData}
+				tasks={TaskData}
+				index={_index}
+			/>
+		);
+	}
 
 	function onDragEnd(result) {
-		const { source, destination, draggableId } = result;
+		const { source, destination } = result;
+
+		let updateArrayLength = 0;
+		let finalArray = null;
+
+		function isEmpty(group) {
+			if (!group) {
+				return false;
+			}
+
+			return group.length;
+		}
+
+		//remove characters and symbols from the droppableId to get the index of the column
+		const sourceColumnDataIndex = parseInt(
+			source.droppableId.replace(/[^\d.]/g, "")
+		);
+		const destColumnDataIndex = parseInt(
+			destination.droppableId.replace(/[^\d.]/g, "")
+		);
 
 		// dropped outside the list
 		if (!destination) {
 			return;
 		}
 
+		//didn't re-order anything
 		if (
 			destination.droppableId === source.droppableId &&
 			destination.index === source.index
@@ -173,27 +285,51 @@ function Board({ CurrentUserData: _userData }) {
 			return;
 		}
 
-		const column = mainData.columns[source.droppableId];
-		const newTaskIds = Array.from(column.taskIds);
+		//if the source and destination columnIds are the same then we drag within the same column
+		if (sourceColumnDataIndex === destColumnDataIndex) {
+			const items = reorder(
+				ColumnData[sourceColumnDataIndex],
+				source.index,
+				destination.index
+			);
 
-		newTaskIds.splice(source.index, 1);
-		newTaskIds.splice(destination.index, 0, draggableId);
+			const stateClone = Array.from(ColumnData);
 
-		const newColumn = {
-			...column,
-			taskIds: newTaskIds,
-		};
+			//place all the items we've re-ordered into the right column
+			stateClone[sourceColumnDataIndex] = items;
 
-		const newState = {
-			...mainData,
-			columns: {
-				...mainData.columns,
-				[newColumn.id]: newColumn,
-			},
-		};
+			//the now potentially empty columns need to be updated
+			updateArrayLength = stateClone.length;
 
-		SetMainData(newState);
+			finalArray = stateClone.filter(isEmpty);
+		} else {
+			const result = move(
+				ColumnData[sourceColumnDataIndex],
+				ColumnData[destColumnDataIndex],
+				source,
+				destination,
+				sourceColumnDataIndex,
+				destColumnDataIndex
+			);
+
+			const stateClone = Array.from(ColumnData);
+			stateClone[sourceColumnDataIndex] = result[sourceColumnDataIndex];
+			stateClone[destColumnDataIndex] = result[destColumnDataIndex];
+
+			//the now potentially empty columns need to be updated
+			updateArrayLength = stateClone.length;
+
+			//array filter to remove empty columns
+			// let finalArray = stateClone.filter(isEmpty);
+			finalArray = stateClone.filter(isEmpty);
+		}
+
+		SetColumnData(finalArray);
+
+		UpdateTaskOrder(finalArray, updateArrayLength);
 	}
+
+	//https://github.com/atlassian/react-beautiful-dnd/blob/master/docs/api/drag-drop-context.md
 
 	return (
 		<div className="App-Page">
@@ -205,25 +341,15 @@ function Board({ CurrentUserData: _userData }) {
 							{...provided.droppableProps}
 							ref={provided.innerRef}
 						>
-							{mainData.columnOrder.map((columnId, i) => {
-								const column = mainData.columns[columnId];
-								const tasks = column.taskIds.map(
-									(taskId) => mainData.tasks[taskId]
-								);
-								return (
-									<Column
-										key={columnId}
-										column={column}
-										tasks={tasks}
-										index={i}
-									/>
-								);
-							})}
+							{ColumnData.map(WriteColumnElements)}
 							{provided.placeholder}
 						</div>
 					)}
 				</Droppable>
 			</DragDropContext>
+			<button type="button" onClick={AddGroup}>
+				Add Group
+			</button>
 		</div>
 	);
 }

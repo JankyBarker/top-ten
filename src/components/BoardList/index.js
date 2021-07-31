@@ -62,7 +62,6 @@ function UserBoards({
 	UserBoards: _boardData,
 	RemoveBoard: _removeBoard,
 }) {
-	// eslint-disable-next-line
 	const keys = Object.keys(_boardData);
 
 	return (

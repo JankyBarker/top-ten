@@ -144,7 +144,7 @@ const useTopTen = (userId, boardId) => {
 
 	function addGroup() {
 		//setColumnIndexData;
-		console.log("adding group");
+		//console.log("adding group");
 
 		const stateClone = Array.from(ColumnIndexData);
 
@@ -211,6 +211,29 @@ const useTopTen = (userId, boardId) => {
 			});
 	}
 
+	function postTaskOrder(_columnArray, _arrLen) {
+		let updates = {};
+
+		for (let i = 0; i < _arrLen; i++) {
+			let column = _columnArray[i];
+
+			let postData = column ? column.map((a) => a.uid) : null;
+
+			updates[`/boards/${boardId}/columns/${i}/`] = postData;
+		}
+
+		//console.table(updates);
+
+		db.ref()
+			.update(updates)
+			.then(function () {
+				//console.log("Update Succeeded.");
+			})
+			.catch(function (error) {
+				console.log("Update Failed: " + error.message);
+			});
+	}
+
 	return {
 		ColumnData: ColumnIndexData,
 		SetColumnData: setColumnIndexData,
@@ -219,6 +242,7 @@ const useTopTen = (userId, boardId) => {
 		AddMovie: addMovie,
 		AddGroup: addGroup,
 		RemoveTask: deleteTask,
+		UpdateTaskOrder: postTaskOrder,
 	};
 };
 
