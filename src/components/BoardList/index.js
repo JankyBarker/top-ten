@@ -62,6 +62,10 @@ function UserBoards({
 	UserBoards: _boardData,
 	RemoveBoard: _removeBoard,
 }) {
+	if (null === _boardData) {
+		return <span>No Boards Yet...</span>;
+	}
+
 	const keys = Object.keys(_boardData);
 
 	return (
@@ -99,10 +103,6 @@ function BoardList() {
 		RemoveBoard: _removeBoard,
 		CreateBoard: _createBoard,
 	} = useBoardList(_userId);
-
-	if (null === _userBoards) {
-		return <span>Loading Boards...</span>;
-	}
 
 	return (
 		<div className="PagePadding">

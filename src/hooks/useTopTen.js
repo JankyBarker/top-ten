@@ -76,7 +76,7 @@ const useTopTen = (userId, boardId) => {
 		return ColumnsIndexRef.on("value", (dbColumnsIndexSnap) => {
 			if (!dbColumnsIndexSnap) return null;
 
-			const columnIndices = [[]];
+			const columnIndices = [];
 
 			if (dbColumnsIndexSnap.exists() && dbColumnsIndexSnap.val()) {
 				let dbValue = dbColumnsIndexSnap.val();
@@ -171,7 +171,7 @@ const useTopTen = (userId, boardId) => {
 			return;
 		}
 		if (_columnIndex === undefined || _columnIndex === null) {
-			console.log("DeleteTask: Invalid ID");
+			console.log("DeleteTask: Invalid _columnIndex");
 			return;
 		}
 
@@ -234,6 +234,52 @@ const useTopTen = (userId, boardId) => {
 			});
 	}
 
+	function deleteColumn(_columnIndex) {
+		if (_columnIndex === undefined || _columnIndex === null) {
+			console.log("DeleteTask: Invalid _columnIndex");
+			return;
+		}
+
+		const stateClone = Array.from(ColumnIndexData);
+
+		const numCols = stateClone.length;
+		let thing = stateClone.splice(_columnIndex, 1);
+
+		let removalRefs = [];
+		thing.forEach((it) => {
+			it.forEach((subIt) => {
+				let taskRefToDelete = db.ref(`/boards/${boardId}/tasks/${subIt.uid}`);
+				removalRefs.push(taskRefToDelete);
+			});
+		});
+
+		let updates = {};
+
+		for (let i = 0; i < numCols; i++) {
+			let column = stateClone[i];
+
+			let postData = column ? column.map((a) => a.uid) : null;
+
+			updates[`/boards/${boardId}/columns/${i}/`] = postData;
+		}
+
+		// console.table(updates);
+
+		db.ref()
+			.update(updates)
+			.then(function () {
+				//console.log("Update Succeeded.");
+				removalRefs.forEach((iterator) => {
+					let ref = iterator;
+					console.log("removing: " + ref);
+					ref.remove();
+				});
+			})
+			.catch(function (error) {
+				console.log("Update Failed: " + error.message);
+			});
+	}
+
 	return {
 		ColumnData: ColumnIndexData,
 		SetColumnData: setColumnIndexData,
@@ -243,6 +289,7 @@ const useTopTen = (userId, boardId) => {
 		AddGroup: addGroup,
 		RemoveTask: deleteTask,
 		UpdateTaskOrder: postTaskOrder,
+		RemoveColumn: deleteColumn,
 	};
 };
 

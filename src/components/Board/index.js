@@ -1,42 +1,10 @@
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
 import { useParams } from "react-router";
 import useTopTen from "../../hooks/useTopTen.js";
-
+import MovieTask from "../MovieTask/index.js";
 // import "skeleton-css/css/normalize.css";
 // import "skeleton-css/css/skeleton.css";
 import "./style.css";
-
-import IconCheck from "../../assets/icon-check.svg";
-
-function UpIcon() {
-	return (
-		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="21">
-			<path fill="none" d="M0 0h24v24H0z"></path>
-			<path d="M13 12v8h-2v-8H4l8-8 8 8z" fill="rgba(201,28,28,1)"></path>
-		</svg>
-	);
-}
-
-function AlignCenterIcon() {
-	return (
-		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="15">
-			<path fill="none" d="M0 0h24v24H0z"></path>
-			<path d="M3 4h18v2H3V4zm2 15h14v2H5v-2zm-2-5h18v2H3v-2zm2-5h14v2H5V9z"></path>
-		</svg>
-	);
-}
-
-function CheckCircle() {
-	return <div className="check-circle"></div>;
-}
-
-function CheckCircleComplete() {
-	return (
-		<div className="check-circle completed">
-			<img className="check-icon" src={IconCheck} alt="check-icon" />
-		</div>
-	);
-}
 
 function TrashIcon() {
 	return (
@@ -57,7 +25,7 @@ function TrashIcon() {
 	);
 }
 
-function ColumnHeader({ title }) {
+function ColumnHeader({ title, columnID, deleteCol }) {
 	return (
 		<div className="ColumnHeader">
 			<input
@@ -70,68 +38,44 @@ function ColumnHeader({ title }) {
 
 			<h2 className="ColumnHeaderText">{title} </h2>
 
-			<div>
+			<div onClick={() => deleteCol(columnID)}>
 				<TrashIcon />
 			</div>
 		</div>
 	);
 }
 
-const geColumnStyle = (isDragging) => ({
-	// change background colour if dragging
-	background: isDragging ? "lightgreen" : "",
-});
-
-function DraggableWrapper({ enableDragDrop, id, index, children }) {
-	if (!enableDragDrop) return <div className="TaskContents">{children}</div>;
-
-	return (
-		<Draggable draggableId={id} index={index} key={id}>
-			{(provided) => (
-				<div
-					{...provided.draggableProps}
-					{...provided.dragHandleProps}
-					ref={provided.innerRef}
-					className="TaskContents"
-					// this needs to be a regular DOM object (a div) not a react component due to below (refs)
-					// https://github.com/atlassian/react-beautiful-dnd/blob/master/docs/guides/using-inner-ref.md
-				>
-					{children}
-				</div>
-			)}
-		</Draggable>
-	);
+function geColumnStyle(isDragging) {
+	return { background: isDragging ? "lightgreen" : "" };
 }
 
-function Task({ id: _uniqueID, task: _task, index: _index }) {
-	return (
-		<DraggableWrapper enableDragDrop={true} id={_uniqueID} index={_index}>
-			<h4 className="TaskText">{_task.movieTitle}</h4>
-			<div className="TaskFooter">
-				<UpIcon />
-				<AlignCenterIcon />
-				<CheckCircle />
-				<CheckCircleComplete />
-			</div>
-		</DraggableWrapper>
-	);
-}
-
-function Column({ columnData: _columnData, tasks: _tasks, index: _index }) {
+function Column({
+	columnData: _columnData,
+	tasks: _tasks,
+	index: _index,
+	deleteCol: _deleteCol,
+}) {
 	const columnid = `column-${_index}`;
 
 	if (null === _columnData) {
 		return <span>ColumnData Error...</span>;
 	}
 
-	if (null === _tasks) {
-		return <span>TaskData Error...</span>;
-	}
+	// if (null === _tasks) {
+	// 	return <span>TaskData Error...</span>;
+	// }
 
 	function WriteTaskElement(taskObject, index) {
+		//console.log(taskObject);
+
+		if (!_tasks) return;
+
 		const taskData = _tasks[taskObject.uid];
+
+		if (!taskData) return;
+
 		return (
-			<Task
+			<MovieTask
 				key={taskObject.uid}
 				id={taskObject.uid}
 				task={taskData}
@@ -155,7 +99,11 @@ function Column({ columnData: _columnData, tasks: _tasks, index: _index }) {
 					// https://github.com/atlassian/react-beautiful-dnd/blob/master/docs/guides/using-inner-ref.md
 				>
 					<div className="ColumnContainer">
-						<ColumnHeader title={columnid} />
+						<ColumnHeader
+							title={columnid}
+							columnID={columnid}
+							deleteCol={_deleteCol}
+						/>
 
 						{/* droppableId must be a unique string */}
 						<Droppable droppableId={columnid} type="task">
@@ -226,16 +174,23 @@ function Board({ CurrentUserData: _userData }) {
 		// eslint-disable-next-line
 		RemoveTask,
 		UpdateTaskOrder,
+		RemoveColumn,
 	} = useTopTen(_currentUserID, boardId);
 
-	var taskDataFound =
-		ColumnData &&
-		TaskData &&
-		Array.isArray(ColumnData) &&
-		Array.isArray(ColumnData[0]);
+	// var taskDataFound =
+	// 	ColumnData &&
+	// 	TaskData &&
+	// 	Array.isArray(ColumnData) &&
+	// 	Array.isArray(ColumnData[0]);
 
-	if (false === taskDataFound || null === taskDataFound) {
-		return <span>Loading Board Data {boardId}...</span>;
+	// if (false === taskDataFound || null === taskDataFound) {
+	// 	return <span>Loading Board Data {boardId}...</span>;
+	// }
+
+	function DeleteColumn(_colId) {
+		const colIndex = ParseColumnID(_colId);
+		console.log("delete Column " + colIndex);
+		RemoveColumn(colIndex);
 	}
 
 	function WriteColumnElements(_columnData, _index) {
@@ -246,8 +201,14 @@ function Board({ CurrentUserData: _userData }) {
 				columnData={_columnData}
 				tasks={TaskData}
 				index={_index}
+				deleteCol={DeleteColumn}
 			/>
 		);
+	}
+
+	function ParseColumnID(columnUniqueID) {
+		//remove characters and symbols from the droppableId to get the index of the column
+		return columnUniqueID.replace(/[^\d.]/g, "");
 	}
 
 	function onDragEnd(result) {
@@ -264,63 +225,83 @@ function Board({ CurrentUserData: _userData }) {
 			return group.length;
 		}
 
-		//remove characters and symbols from the droppableId to get the index of the column
-		const sourceColumnDataIndex = parseInt(
-			source.droppableId.replace(/[^\d.]/g, "")
-		);
-		const destColumnDataIndex = parseInt(
-			destination.droppableId.replace(/[^\d.]/g, "")
-		);
+		if (result.type === "task") {
+			const sourceColumnDataIndex = ParseColumnID(source.droppableId);
+			const destColumnDataIndex = ParseColumnID(destination.droppableId);
 
-		// dropped outside the list
-		if (!destination) {
-			return;
-		}
+			// dropped outside the list
+			if (!destination) {
+				return;
+			}
 
-		//didn't re-order anything
-		if (
-			destination.droppableId === source.droppableId &&
-			destination.index === source.index
-		) {
-			return;
-		}
+			//didn't re-order anything
+			if (
+				destination.droppableId === source.droppableId &&
+				destination.index === source.index
+			) {
+				return;
+			}
 
-		//if the source and destination columnIds are the same then we drag within the same column
-		if (sourceColumnDataIndex === destColumnDataIndex) {
-			const items = reorder(
-				ColumnData[sourceColumnDataIndex],
-				source.index,
-				destination.index
-			);
+			//if the source and destination columnIds are the same then we drag within the same column
+			if (sourceColumnDataIndex === destColumnDataIndex) {
+				const items = reorder(
+					ColumnData[sourceColumnDataIndex],
+					source.index,
+					destination.index
+				);
 
-			const stateClone = Array.from(ColumnData);
+				const stateClone = Array.from(ColumnData);
 
-			//place all the items we've re-ordered into the right column
-			stateClone[sourceColumnDataIndex] = items;
+				//place all the items we've re-ordered into the right column
+				stateClone[sourceColumnDataIndex] = items;
 
-			//the now potentially empty columns need to be updated
-			updateArrayLength = stateClone.length;
+				//the now potentially empty columns need to be updated
+				updateArrayLength = stateClone.length;
 
-			finalArray = stateClone.filter(isEmpty);
+				finalArray = stateClone.filter(isEmpty);
+			} else {
+				const result = move(
+					ColumnData[sourceColumnDataIndex],
+					ColumnData[destColumnDataIndex],
+					source,
+					destination,
+					sourceColumnDataIndex,
+					destColumnDataIndex
+				);
+
+				const stateClone = Array.from(ColumnData);
+				stateClone[sourceColumnDataIndex] = result[sourceColumnDataIndex];
+				stateClone[destColumnDataIndex] = result[destColumnDataIndex];
+
+				//the now potentially empty columns need to be updated
+				updateArrayLength = stateClone.length;
+
+				//array filter to remove empty columns
+				// let finalArray = stateClone.filter(isEmpty);
+				finalArray = stateClone.filter(isEmpty);
+			}
 		} else {
-			const result = move(
-				ColumnData[sourceColumnDataIndex],
-				ColumnData[destColumnDataIndex],
-				source,
-				destination,
-				sourceColumnDataIndex,
-				destColumnDataIndex
-			);
+			// const newColumnOrder = Array.from(initialData.columnOrder);
+			// newColumnOrder.splice(source.index, 1);
+			// newColumnOrder.splice(destination.index, 0, draggableId);
+			// setInitialData({ ...initialData, columnOrder: newColumnOrder });
+			// db.collection(`users/${userId}/boards/${boardId}/columns`)
+			// 	.doc("columnOrder")
+			// 	.update({ order: newColumnOrder });
 
 			const stateClone = Array.from(ColumnData);
-			stateClone[sourceColumnDataIndex] = result[sourceColumnDataIndex];
-			stateClone[destColumnDataIndex] = result[destColumnDataIndex];
+
+			console.log("before");
+
+			console.table(stateClone);
+
+			const element = stateClone.splice(source.index, 1);
+			stateClone.splice(destination.index, 0, element[0]);
 
 			//the now potentially empty columns need to be updated
 			updateArrayLength = stateClone.length;
 
 			//array filter to remove empty columns
-			// let finalArray = stateClone.filter(isEmpty);
 			finalArray = stateClone.filter(isEmpty);
 		}
 
@@ -341,7 +322,7 @@ function Board({ CurrentUserData: _userData }) {
 							{...provided.droppableProps}
 							ref={provided.innerRef}
 						>
-							{ColumnData.map(WriteColumnElements)}
+							{ColumnData?.map(WriteColumnElements)}
 							{provided.placeholder}
 						</div>
 					)}
