@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { db } from "../components/Firebase/fbConfig.js";
-import { v4 as uuidv4 } from "uuid";
+//import { v4 as uuidv4 } from "uuid";
 
 //https://console.firebase.google.com/project/top-ten-d9fc1/database/top-ten-d9fc1-default-rtdb/data
 
@@ -142,27 +142,17 @@ const useTopTen = (userId, boardId) => {
 		AddMovie(newMovieRef, orderRef, _movieName, stateClone[_colIndex]);
 	}
 
-	function addGroup() {
-		//setColumnIndexData;
-		//console.log("adding group");
+	function addGroup(_groupName) {
+		if (_groupName.length < 1) return;
 
 		const stateClone = Array.from(ColumnIndexData);
 
-		const uid = uuidv4();
-
-		const _movieName = "temp " + uid;
-
-		const newMovieRef = db.ref(`/boards/${boardId}/tasks`).push();
-
-		stateClone.push([]);
-
-		const _colIndex = stateClone.length - 1;
-
-		const orderRef = db.ref(`/boards/${boardId}/columns/${_colIndex}/`);
+		//must add a non-empty object array as firebase ignores them when you try to save them
+		stateClone.push([{ uid: 0 }]);
 
 		setColumnIndexData(stateClone);
 
-		AddMovie(newMovieRef, orderRef, _movieName, stateClone[_colIndex]);
+		postTaskOrder(stateClone, stateClone.length);
 	}
 
 	function deleteTask(_taskID, _columnIndex) {
