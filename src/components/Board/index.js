@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
 import { useParams } from "react-router";
 import useTopTen from "../../hooks/useTopTen.js";
@@ -5,6 +6,36 @@ import MovieTask from "../MovieTask/index.js";
 // import "skeleton-css/css/normalize.css";
 // import "skeleton-css/css/skeleton.css";
 import "./style.css";
+
+function AddGroupForm({ AddGroupCommand }) {
+	const [groupName, setInputField] = useState();
+
+	function OnInputTextChange(e) {
+		e.preventDefault();
+		setInputField(e.target.value);
+	}
+
+	function onSubmit(e) {
+		e.preventDefault();
+		//alert(groupName);
+		AddGroupCommand(groupName);
+	}
+
+	return (
+		<div>
+			<form onSubmit={onSubmit} autoComplete="off">
+				<input
+					type="text"
+					name="input_first_name"
+					onChange={OnInputTextChange}
+					placeholder="Add a new Group"
+					value={groupName}
+					maxLength="20"
+				/>
+			</form>
+		</div>
+	);
+}
 
 function TrashIcon() {
 	return (
@@ -60,10 +91,6 @@ function Column({
 	if (null === _columnData) {
 		return <span>ColumnData Error...</span>;
 	}
-
-	// if (null === _tasks) {
-	// 	return <span>TaskData Error...</span>;
-	// }
 
 	function WriteTaskElement(taskObject, index) {
 		//console.log(taskObject);
@@ -176,16 +203,6 @@ function Board({ CurrentUserData: _userData }) {
 		UpdateTaskOrder,
 		RemoveColumn,
 	} = useTopTen(_currentUserID, boardId);
-
-	// var taskDataFound =
-	// 	ColumnData &&
-	// 	TaskData &&
-	// 	Array.isArray(ColumnData) &&
-	// 	Array.isArray(ColumnData[0]);
-
-	// if (false === taskDataFound || null === taskDataFound) {
-	// 	return <span>Loading Board Data {boardId}...</span>;
-	// }
 
 	function DeleteColumn(_colId) {
 		const colIndex = ParseColumnID(_colId);
@@ -324,13 +341,11 @@ function Board({ CurrentUserData: _userData }) {
 						>
 							{ColumnData?.map(WriteColumnElements)}
 							{provided.placeholder}
+							<AddGroupForm AddGroupCommand={AddGroup} />
 						</div>
 					)}
 				</Droppable>
 			</DragDropContext>
-			<button type="button" onClick={AddGroup}>
-				Add Group
-			</button>
 		</div>
 	);
 }
