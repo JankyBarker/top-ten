@@ -1,6 +1,7 @@
 import { Draggable } from "react-beautiful-dnd";
 
 import IconCheck from "../../assets/icon-check.svg";
+import { TrashIcon } from "../Icons";
 
 function UpIcon() {
 	return (
@@ -53,7 +54,16 @@ function DraggableWrapper({ enableDragDrop, id, index, children }) {
 	);
 }
 
-function MovieTask({ id: _uniqueID, task: _task, index: _index }) {
+function MovieTask({
+	id: _uniqueID,
+	task: _task,
+	index: _index,
+	RemoveTaskCommand: _removeTask,
+}) {
+	const tempRemoveMovieWrap = (event) => {
+		event.preventDefault();
+		_removeTask(_uniqueID);
+	};
 	return (
 		<DraggableWrapper enableDragDrop={true} id={_uniqueID} index={_index}>
 			<h4 className="TaskText">{_task.movieTitle}</h4>
@@ -62,6 +72,9 @@ function MovieTask({ id: _uniqueID, task: _task, index: _index }) {
 				<AlignCenterIcon />
 				<CheckCircle />
 				<CheckCircleComplete />
+				<div onClick={tempRemoveMovieWrap}>
+					<TrashIcon />
+				</div>
 			</div>
 		</DraggableWrapper>
 	);

@@ -155,53 +155,55 @@ const useTopTen = (userId, boardId) => {
 		postTaskOrder(stateClone, stateClone.length);
 	}
 
-	function deleteTask(_taskID, _columnIndex) {
+	function deleteTask(_taskID) {
 		if (_taskID === undefined || _taskID === null) {
 			console.log("DeleteTask: Invalid ID");
 			return;
 		}
-		if (_columnIndex === undefined || _columnIndex === null) {
-			console.log("DeleteTask: Invalid _columnIndex");
-			return;
-		}
+		//alert("here: " + _taskID);
 
-		let newArray = ColumnIndexData[_columnIndex].filter(function (ele) {
-			return ele.uid !== _taskID;
-		});
+		const stateClone = Array.from(ColumnIndexData);
 
-		const orderRef = db.ref(`/boards/${boardId}/columns/${_columnIndex}/`);
-
-		const oldTaskRef = db.ref(`/boards/${boardId}/tasks/${_taskID}`);
-
-		orderRef
-			.transaction(
-				function (post) {
-					let postData = newArray.map((a) => a.uid);
-
-					//this return will set the data
-					//returning undefined will abort the operation
-					return postData;
-				},
-				function (error, committed, snapshot) {
-					if (error) {
-						console.log("Transaction failed abnormally!", error);
-					} else if (!committed) {
-						console.log("No data committed.");
-					}
-
-					console.log("Delete task : New data: ", snapshot.val());
-				}
-			)
-			.then(function () {
-				//delete Task from Database JSON
-				oldTaskRef.remove();
-			})
-			.catch(function (error) {
-				console.log("Synchronization failed");
+		stateClone.forEach((it, _columnIndex) => {
+			stateClone[_columnIndex] = it.filter(function (ele) {
+				return ele.uid !== _taskID;
 			});
+
+			const orderRef = db.ref(`/boards/${boardId}/columns/${_columnIndex}/`);
+			const oldTaskRef = db.ref(`/boards/${boardId}/tasks/${_taskID}`);
+
+			orderRef
+				.transaction(
+					function (post) {
+						let postData = stateClone[_columnIndex].map((a) => a.uid);
+
+						//this return will set the data
+						//returning undefined will abort the operation
+						return postData;
+					},
+					function (error, committed, snapshot) {
+						if (error) {
+							console.log("Transaction failed abnormally!", error);
+						} else if (!committed) {
+							console.log("No data committed.");
+						}
+
+						console.log("Delete task : New data: ", snapshot.val());
+					}
+				)
+				.then(function () {
+					//delete Task from Database JSON
+					oldTaskRef.remove();
+				})
+				.catch(function (error) {
+					console.log("Synchronization failed");
+				});
+		});
 	}
 
 	function postTaskOrder(_columnArray, _arrLen) {
+		setColumnIndexData(_columnArray);
+
 		let updates = {};
 
 		for (let i = 0; i < _arrLen; i++) {
@@ -233,10 +235,10 @@ const useTopTen = (userId, boardId) => {
 		const stateClone = Array.from(ColumnIndexData);
 
 		const numCols = stateClone.length;
-		let thing = stateClone.splice(_columnIndex, 1);
+		let removedColumn = stateClone.splice(_columnIndex, 1);
 
 		let removalRefs = [];
-		thing.forEach((it) => {
+		removedColumn.forEach((it) => {
 			it.forEach((subIt) => {
 				let taskRefToDelete = db.ref(`/boards/${boardId}/tasks/${subIt.uid}`);
 				removalRefs.push(taskRefToDelete);
@@ -272,9 +274,7 @@ const useTopTen = (userId, boardId) => {
 
 	return {
 		ColumnData: ColumnIndexData,
-		SetColumnData: setColumnIndexData,
 		TaskData: RawTaskData,
-		SetTaskData: SetRawTaskData,
 		AddMovie: addMovie,
 		AddGroup: addGroup,
 		RemoveTask: deleteTask,
