@@ -183,8 +183,6 @@ const useTopTen = (userId, boardId) => {
 		db.ref()
 			.update(updates)
 			.then(function () {
-				console.log("Update Succeeded.");
-
 				const columnIndexDataCopy = Array.from(ColumnIndexData);
 
 				//must add a non-empty object array as firebase ignores them when you try to save them
