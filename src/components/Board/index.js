@@ -32,7 +32,7 @@ function Breadcrumb({ currentBoardName, onBoardNameChange }) {
 }
 
 function AddGroupForm({ AddGroupCommand }) {
-	const [groupName, setInputField] = useState();
+	const [groupName, setInputField] = useState("");
 
 	function OnInputTextChange(e) {
 		setInputField(e.target.value);
