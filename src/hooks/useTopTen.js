@@ -343,18 +343,18 @@ const useTopTen = (userId, boardId) => {
 
 	function ReorderColumnsImp(sourceIndex, destIndex) {
 		if (sourceIndex < 0 || destIndex < 0) return;
-		console.log("from: " + sourceIndex + " to: " + destIndex);
+		//console.log("from: " + sourceIndex + " to: " + destIndex);
 
 		const stateClone = Array.from(ColumnNameData);
 
-		console.log("from: " + JSON.stringify(stateClone));
+		//console.log("from: " + JSON.stringify(stateClone));
 
 		const removedElements = stateClone.splice(sourceIndex, 1);
 		stateClone.splice(destIndex, 0, removedElements[0]);
 
 		SetColumnNameData(stateClone);
 
-		console.log("to: " + JSON.stringify(stateClone));
+		//console.log("to: " + JSON.stringify(stateClone));
 
 		let updates = {};
 		updates[`/boards/${boardId}/columnNames/`] = stateClone;
