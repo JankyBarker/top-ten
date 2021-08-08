@@ -129,6 +129,23 @@
     stroke: currentColor;
 }
 
+.AddIcon {
+
+
+    cursor: pointer;
+
+    color: rgba(29, 78, 216, 1);
+    width: 19;
+    fill: none;
+    box-sizing: border-box;
+    border: 0 solid #e5e7eb;
+
+    display: block;
+
+    stroke: currentColor;
+}
+
+
 
 .ColumnContents {
 

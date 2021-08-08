@@ -271,6 +271,8 @@ const useTopTen = (userId, boardId) => {
 	}
 
 	function deleteColumn(_columnIndex) {
+		console.log("deleteColumn with index " + _columnIndex);
+
 		if (_columnIndex === undefined || _columnIndex === null) {
 			console.log("DeleteTask: Invalid _columnIndex");
 			return;
@@ -330,14 +332,16 @@ const useTopTen = (userId, boardId) => {
 				db.ref()
 					.update(updates)
 					.then(function () {
-						console.log("Delete Column: Name Update Succeeded.");
+						//console.log("Delete Column: Name Update Succeeded.");
 					})
 					.catch(function (error) {
-						console.log("Delete Column: Name Update Failed: " + error.message);
+						console.error(
+							"Delete Column: Name Update Failed: " + error.message
+						);
 					});
 			})
 			.catch(function (error) {
-				console.log("Update Failed: " + error.message);
+				console.error("Update Failed: " + error.message);
 			});
 	}
 

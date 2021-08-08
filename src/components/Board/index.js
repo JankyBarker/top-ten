@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
 import { useParams } from "react-router";
 import useTopTen from "../../hooks/useTopTen.js";
-import { TrashIcon } from "../Icons.js";
+import { TrashIcon, AddIcon } from "../Icons.js";
 import MovieTask from "../MovieTask/index.js";
 // import "skeleton-css/css/normalize.css";
 // import "skeleton-css/css/skeleton.css";
@@ -38,7 +38,17 @@ function AddGroupForm({ AddGroupCommand }) {
 	);
 }
 
-function ColumnHeader({ title, columnID, deleteCol }) {
+function ColumnHeader({ title, columnIndex, deleteCol, addTask }) {
+	function AddMovieButtonPress(event) {
+		event.preventDefault();
+		addTask("eh", columnIndex);
+	}
+
+	function DeleteColumnButtonPress(event) {
+		event.preventDefault();
+		deleteCol(columnIndex);
+	}
+
 	return (
 		<div className="ColumnHeader">
 			<input
@@ -51,8 +61,11 @@ function ColumnHeader({ title, columnID, deleteCol }) {
 
 			<h2 className="ColumnHeaderText">{title} </h2>
 
-			<div onClick={() => deleteCol(columnID)}>
+			<div onClick={DeleteColumnButtonPress}>
 				<TrashIcon />
+			</div>
+			<div onClick={AddMovieButtonPress}>
+				<AddIcon />
 			</div>
 		</div>
 	);
@@ -69,6 +82,7 @@ function Column({
 	index: _index,
 	deleteCol: _deleteCol,
 	deleteTask: _deleteTask,
+	addTask: _addTask,
 }) {
 	const columnid = `column-${_index}`;
 
@@ -113,8 +127,9 @@ function Column({
 					<div className="ColumnContainer">
 						<ColumnHeader
 							title={_columnTitle}
-							columnID={columnid}
+							columnIndex={_index}
 							deleteCol={_deleteCol}
+							addTask={_addTask}
 						/>
 
 						{/* droppableId must be a unique string */}
@@ -188,12 +203,6 @@ function Board({ CurrentUserData: _userData }) {
 		ReorderColumns,
 	} = useTopTen(_currentUserID, boardId);
 
-	function DeleteColumn(_colId) {
-		const colIndex = ParseColumnID(_colId);
-		console.log("delete Column " + colIndex);
-		RemoveColumn(colIndex);
-	}
-
 	function WriteColumnElements(_columnData, _index) {
 		const columnKey = `column-${_index}`;
 
@@ -209,8 +218,9 @@ function Board({ CurrentUserData: _userData }) {
 				columnData={_columnData}
 				tasks={TaskData}
 				index={_index}
-				deleteCol={DeleteColumn}
+				deleteCol={RemoveColumn}
 				deleteTask={RemoveTask}
+				addTask={AddMovie}
 			/>
 		);
 	}
@@ -280,11 +290,6 @@ function Board({ CurrentUserData: _userData }) {
 		UpdateTaskOrder(stateClone);
 	}
 
-	const tempAddMovieWrap = (event) => {
-		event.preventDefault();
-		AddMovie("eh", 0);
-	};
-
 	//https://github.com/atlassian/react-beautiful-dnd/blob/master/docs/api/drag-drop-context.md
 	return (
 		<div className="App-Page">
@@ -303,9 +308,6 @@ function Board({ CurrentUserData: _userData }) {
 					)}
 				</Droppable>
 			</DragDropContext>
-			<button type="button" onClick={tempAddMovieWrap}>
-				Add Movie
-			</button>
 		</div>
 	);
 }
