@@ -66,6 +66,7 @@ function AddMovie(newMovieRef, orderRef, title, taskList) {
 const useTopTen = (userId, boardId) => {
 	const [RawTaskData, SetRawTaskData] = useState(null);
 	const [ColumnIndexData, setColumnIndexData] = useState(null);
+	const [ColumnIndexDataCopy, setColumnIndexDataCopy] = useState(null);
 	const [ColumnNameData, SetColumnNameData] = useState(null);
 
 	useEffect(() => {
@@ -105,6 +106,47 @@ const useTopTen = (userId, boardId) => {
 			}
 
 			setColumnIndexData(columnIndices);
+		});
+	}, [userId, boardId]);
+
+	useEffect(() => {
+		if (!userId) return null;
+
+		const dbRefString = `/boards/${boardId}/columns_copy/`;
+		const ColumnsIndexRef = db.ref(dbRefString);
+
+		return ColumnsIndexRef.on("value", (dbColumnsIndexSnap) => {
+			if (!dbColumnsIndexSnap) return null;
+
+			const columnIndices = [];
+
+			if (dbColumnsIndexSnap.exists() && dbColumnsIndexSnap.val()) {
+				let dbValue = dbColumnsIndexSnap.val();
+				//console.log(JSON.stringify(dbValue));
+
+				//0: ["-M_CVm-J9tnNX-2peD4Y", "-M_CXCFnp05GNxoDhRLB", "-M_CXCkXKxYe_WF_Pxi2"]
+				//1: ["-M_CYEaZilSmamVqGg1K"]
+
+				dbValue.forEach((it, index) => {
+					//0: ["-M_CVm-J9tnNX-2peD4Y", "-M_CXCFnp05GNxoDhRLB", "-M_CXCkXKxYe_WF_Pxi2"]
+					var columnTaskIds = [];
+					it.forEach((childIt) => {
+						var item = {};
+						item.uid = childIt;
+						columnTaskIds.push(item);
+					});
+
+					//ensure the array is overriden to prevent zombie items
+					columnIndices[index] = columnTaskIds;
+				});
+			} else {
+				console.log(
+					"%c Error: " + dbRefString + " - Not found",
+					"background: #2f8078"
+				);
+			}
+
+			setColumnIndexDataCopy(columnIndices);
 		});
 	}, [userId, boardId]);
 
@@ -167,6 +209,11 @@ const useTopTen = (userId, boardId) => {
 		const stateClone = Array.from(ColumnIndexData);
 
 		AddMovie(newMovieRef, orderRef, _movieName, stateClone[_colIndex]);
+
+		const orderBackupRef = db.ref(
+			`/boards/${boardId}/columns_copy/${_colIndex}/`
+		);
+		AddMovie(newMovieRef, orderBackupRef, _movieName, stateClone[_colIndex]);
 	}
 
 	function addGroup(_groupName) {
@@ -192,7 +239,9 @@ const useTopTen = (userId, boardId) => {
 
 				setColumnIndexData(columnIndexDataCopy);
 
-				postTaskOrder(columnIndexDataCopy, columnIndexDataCopy.length);
+				setColumnIndexDataCopy(columnIndexDataCopy);
+
+				postTaskOrder(columnIndexDataCopy);
 			})
 			.catch(function (error) {
 				console.log("Update Failed: " + error.message);
@@ -245,17 +294,28 @@ const useTopTen = (userId, boardId) => {
 		});
 	}
 
-	function postTaskOrder(_columnArray, _arrLen) {
+	function postTaskOrder(_columnArray) {
+		if (!_columnArray) return;
+
 		setColumnIndexData(_columnArray);
+		setColumnIndexDataCopy(_columnArray);
 
 		let updates = {};
 
-		for (let i = 0; i < _arrLen; i++) {
+		for (let i = 0; i < _columnArray.length; i++) {
 			let column = _columnArray[i];
 
 			let postData = column ? column.map((a) => a.uid) : null;
 
 			updates[`/boards/${boardId}/columns/${i}/`] = postData;
+		}
+
+		for (let i = 0; i < _columnArray.length; i++) {
+			let column = _columnArray[i];
+
+			let postData = column ? column.map((a) => a.uid) : null;
+
+			updates[`/boards/${boardId}/columns_copy/${i}/`] = postData;
 		}
 
 		//console.table(updates);
@@ -350,6 +410,7 @@ const useTopTen = (userId, boardId) => {
 		RemoveTask: deleteTask,
 		UpdateTaskOrder: postTaskOrder,
 		RemoveColumn: deleteColumn,
+		ColumnDataCopy: ColumnIndexDataCopy,
 	};
 };
 

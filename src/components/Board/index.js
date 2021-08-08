@@ -220,97 +220,69 @@ function Board({ CurrentUserData: _userData }) {
 	}
 
 	function onDragEnd(result) {
-		const { source, destination } = result;
+		//DraggableLocation
+		const { source: srcDragLocation, destination: destDragLocation } = result;
 
-		let updateArrayLength = 0;
-		let finalArray = null;
-
-		function isEmpty(group) {
-			if (!group) {
-				return false;
-			}
-
-			return group.length;
+		// dropped outside the list
+		if (!destDragLocation) {
+			return;
 		}
 
+		//didn't re-order anything
+		if (
+			destDragLocation.droppableId === srcDragLocation.droppableId &&
+			destDragLocation.index === srcDragLocation.index
+		) {
+			return;
+		}
+
+		//clone the state to start editing process
+		const stateClone = Array.from(ColumnData);
+
 		if (result.type === "task") {
-			const sourceColumnDataIndex = ParseColumnID(source.droppableId);
-			const destColumnDataIndex = ParseColumnID(destination.droppableId);
+			const sourceColumnDataIndex = ParseColumnID(srcDragLocation.droppableId);
+			const destColumnDataIndex = ParseColumnID(destDragLocation.droppableId);
 
-			// dropped outside the list
-			if (!destination) {
-				return;
-			}
-
-			//didn't re-order anything
-			if (
-				destination.droppableId === source.droppableId &&
-				destination.index === source.index
-			) {
-				return;
-			}
-
-			//if the source and destination columnIds are the same then we drag within the same column
 			if (sourceColumnDataIndex === destColumnDataIndex) {
+				//CASE 1: Drag a Task within same column (source and destination columnIds are identical)
+
 				const items = reorder(
 					ColumnData[sourceColumnDataIndex],
-					source.index,
-					destination.index
+					srcDragLocation.index,
+					destDragLocation.index
 				);
-
-				const stateClone = Array.from(ColumnData);
 
 				//place all the items we've re-ordered into the right column
 				stateClone[sourceColumnDataIndex] = items;
-
-				//the now potentially empty columns need to be updated
-				updateArrayLength = stateClone.length;
-
-				finalArray = stateClone.filter(isEmpty);
 			} else {
+				//CASE 2: Drag a Task to a different column (source and destination columnIds are different)
 				const result = move(
 					ColumnData[sourceColumnDataIndex],
 					ColumnData[destColumnDataIndex],
-					source,
-					destination,
+					srcDragLocation,
+					destDragLocation,
 					sourceColumnDataIndex,
 					destColumnDataIndex
 				);
 
-				const stateClone = Array.from(ColumnData);
 				stateClone[sourceColumnDataIndex] = result[sourceColumnDataIndex];
 				stateClone[destColumnDataIndex] = result[destColumnDataIndex];
-
-				//the now potentially empty columns need to be updated
-				updateArrayLength = stateClone.length;
-
-				//array filter to remove empty columns
-				// let finalArray = stateClone.filter(isEmpty);
-				finalArray = stateClone.filter(isEmpty);
 			}
 		} else {
-			const stateClone = Array.from(ColumnData);
-
-			const element = stateClone.splice(source.index, 1);
-			stateClone.splice(destination.index, 0, element[0]);
-
-			//the now potentially empty columns need to be updated
-			updateArrayLength = stateClone.length;
-
-			//array filter to remove empty columns
-			finalArray = stateClone.filter(isEmpty);
+			//CASE 3: Reorder Columns
+			const element = stateClone.splice(srcDragLocation.index, 1);
+			stateClone.splice(destDragLocation.index, 0, element[0]);
 		}
 
-		UpdateTaskOrder(finalArray, updateArrayLength);
+		UpdateTaskOrder(stateClone);
 	}
-
-	//https://github.com/atlassian/react-beautiful-dnd/blob/master/docs/api/drag-drop-context.md
 
 	const tempAddMovieWrap = (event) => {
 		event.preventDefault();
 		AddMovie("eh", 0);
 	};
 
+	//https://github.com/atlassian/react-beautiful-dnd/blob/master/docs/api/drag-drop-context.md
 	return (
 		<div className="App-Page">
 			<DragDropContext onDragEnd={onDragEnd}>
