@@ -14,7 +14,6 @@
 	);
 }
 
-
 .App-Page {
     display: grid;
     align-items: flex-start;
@@ -23,6 +22,34 @@
     overflow-x: auto;
     padding-top: .75rem;
 }
+
+.text-breadcrumb{
+    font-size: 1.25rem;
+}
+
+.breadcrumb-text-home{
+    color: rgba(30, 64, 175, 1);    
+}
+
+.breadcrumb-text-current{
+    /* width: 50%;  */
+    font-family: inherit;
+    font-size: 100%;
+    margin-left: .5rem;
+    padding: 0;
+    border: 0;
+}
+
+.breadcrumb-text-home:hover{
+    color: rgba(59, 130, 246, 1);
+}
+
+.truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 
 .ColumnGrid {
     display: grid;

@@ -1,12 +1,35 @@
 import React, { useState } from "react";
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
 import { useParams } from "react-router";
+import { Link } from "react-router-dom";
 import useTopTen from "../../hooks/useTopTen.js";
 import { TrashIcon, AddIcon } from "../Icons.js";
 import MovieTask from "../MovieTask/index.js";
 // import "skeleton-css/css/normalize.css";
 // import "skeleton-css/css/skeleton.css";
 import "./style.css";
+
+function Breadcrumb({ currentBoardName, onBoardNameChange }) {
+	function ChangeBoardNameEventWrap(event) {
+		event.preventDefault();
+		onBoardNameChange(event.target.value);
+	}
+
+	return (
+		<span className="text-breadcrumb">
+			<Link to="/" className="breadcrumb-text-home">
+				Boards
+			</Link>
+			<span className="">/</span>
+			<input
+				type="text"
+				defaultValue={currentBoardName}
+				className="breadcrumb-text-current truncate"
+				onChange={ChangeBoardNameEventWrap}
+			/>
+		</span>
+	);
+}
 
 function AddGroupForm({ AddGroupCommand }) {
 	const [groupName, setInputField] = useState();
@@ -290,10 +313,19 @@ function Board({ CurrentUserData: _userData }) {
 		UpdateTaskOrder(stateClone);
 	}
 
+	function onChangeBoardName(_newName) {
+		console.log("change name to: " + _newName);
+	}
+
 	//https://github.com/atlassian/react-beautiful-dnd/blob/master/docs/api/drag-drop-context.md
 	return (
 		<div className="App-Page">
 			<DragDropContext onDragEnd={onDragEnd}>
+				<Breadcrumb
+					currentBoardName={"hello world"}
+					onBoardNameChange={onChangeBoardName}
+				/>
+
 				<Droppable droppableId="allCols" type="column" direction="horizontal">
 					{(provided) => (
 						<div

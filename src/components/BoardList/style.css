@@ -37,7 +37,7 @@
 }
 
 .boardBox {
-	width: 100%;
+	width: 100%; /*percent of the containing block*/
 
 	margin-bottom: 0.75rem;
 	margin-right: 1rem;
@@ -70,7 +70,8 @@
 
 	/* Board Boxes become box grid instead of single column */
 	.boardBox {
-		width: auto;
+		width: auto; /* The browser calculates the width */
+		
 	}
 }
 
