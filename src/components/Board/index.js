@@ -12,7 +12,6 @@ function AddGroupForm({ AddGroupCommand }) {
 	const [groupName, setInputField] = useState();
 
 	function OnInputTextChange(e) {
-		e.preventDefault();
 		setInputField(e.target.value);
 	}
 
@@ -20,6 +19,7 @@ function AddGroupForm({ AddGroupCommand }) {
 		e.preventDefault();
 		//alert(groupName);
 		AddGroupCommand(groupName);
+		setInputField("");
 	}
 
 	return (
@@ -63,6 +63,7 @@ function geColumnStyle(isDragging) {
 }
 
 function Column({
+	columnTitle: _columnTitle,
 	columnData: _columnData,
 	tasks: _tasks,
 	index: _index,
@@ -111,7 +112,7 @@ function Column({
 				>
 					<div className="ColumnContainer">
 						<ColumnHeader
-							title={columnid}
+							title={_columnTitle}
 							columnID={columnid}
 							deleteCol={_deleteCol}
 						/>
@@ -177,6 +178,7 @@ function Board({ CurrentUserData: _userData }) {
 
 	const {
 		ColumnData,
+		ColumnNames,
 		TaskData,
 		AddMovie,
 		AddGroup,
@@ -193,8 +195,15 @@ function Board({ CurrentUserData: _userData }) {
 
 	function WriteColumnElements(_columnData, _index) {
 		const columnKey = `column-${_index}`;
+
+		const columnName =
+			ColumnNames && _index < ColumnNames.length
+				? ColumnNames[_index]
+				: "Name Error";
+
 		return (
 			<Column
+				columnTitle={columnName}
 				key={columnKey}
 				columnData={_columnData}
 				tasks={TaskData}
@@ -280,19 +289,7 @@ function Board({ CurrentUserData: _userData }) {
 				finalArray = stateClone.filter(isEmpty);
 			}
 		} else {
-			// const newColumnOrder = Array.from(initialData.columnOrder);
-			// newColumnOrder.splice(source.index, 1);
-			// newColumnOrder.splice(destination.index, 0, draggableId);
-			// setInitialData({ ...initialData, columnOrder: newColumnOrder });
-			// db.collection(`users/${userId}/boards/${boardId}/columns`)
-			// 	.doc("columnOrder")
-			// 	.update({ order: newColumnOrder });
-
 			const stateClone = Array.from(ColumnData);
-
-			console.log("before");
-
-			console.table(stateClone);
 
 			const element = stateClone.splice(source.index, 1);
 			stateClone.splice(destination.index, 0, element[0]);

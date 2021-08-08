@@ -66,6 +66,7 @@ function AddMovie(newMovieRef, orderRef, title, taskList) {
 const useTopTen = (userId, boardId) => {
 	const [RawTaskData, SetRawTaskData] = useState(null);
 	const [ColumnIndexData, setColumnIndexData] = useState(null);
+	const [ColumnNameData, SetColumnNameData] = useState(null);
 
 	useEffect(() => {
 		if (!userId) return null;
@@ -111,7 +112,7 @@ const useTopTen = (userId, boardId) => {
 		if (!userId) return null;
 
 		const tasksTableRefString = `/boards/${boardId}/tasks`;
-		var tasksTableRef = db.ref(tasksTableRefString);
+		const tasksTableRef = db.ref(tasksTableRefString);
 
 		return tasksTableRef.on("value", (snap) => {
 			if (snap !== undefined) {
@@ -124,6 +125,32 @@ const useTopTen = (userId, boardId) => {
 
 				SetRawTaskData(snap.val());
 			}
+		});
+	}, [userId, boardId]);
+
+	useEffect(() => {
+		if (!userId) return null;
+
+		const columnNamesRefString = `/boards/${boardId}/columnNames`;
+		const columnNameTableRef = db.ref(columnNamesRefString);
+
+		return columnNameTableRef.on("value", (columnNameSnap) => {
+			if (!columnNameSnap) return null;
+
+			var columnIndices = [];
+
+			if (columnNameSnap.exists() && columnNameSnap.val()) {
+				//0: ["ColumnName_0"]
+				//1: ["ColumnName_1"]
+				columnIndices = columnNameSnap.val();
+			} else {
+				console.log(
+					"%c Error: " + columnNamesRefString + " - Not found",
+					"background: #2f8078"
+				);
+			}
+
+			SetColumnNameData(columnIndices);
 		});
 	}, [userId, boardId]);
 
@@ -145,14 +172,31 @@ const useTopTen = (userId, boardId) => {
 	function addGroup(_groupName) {
 		if (_groupName.length < 1) return;
 
-		const stateClone = Array.from(ColumnIndexData);
+		const _columnNameDataCopy = Array.from(ColumnNameData);
+		_columnNameDataCopy.push(_groupName);
 
-		//must add a non-empty object array as firebase ignores them when you try to save them
-		stateClone.push([{ uid: 0 }]);
+		SetColumnNameData(_columnNameDataCopy);
 
-		setColumnIndexData(stateClone);
+		let updates = {};
+		updates[`/boards/${boardId}/columnNames/`] = _columnNameDataCopy;
 
-		postTaskOrder(stateClone, stateClone.length);
+		db.ref()
+			.update(updates)
+			.then(function () {
+				console.log("Update Succeeded.");
+
+				const columnIndexDataCopy = Array.from(ColumnIndexData);
+
+				//must add a non-empty object array as firebase ignores them when you try to save them
+				columnIndexDataCopy.push([{ uid: 0 }]);
+
+				setColumnIndexData(columnIndexDataCopy);
+
+				postTaskOrder(columnIndexDataCopy, columnIndexDataCopy.length);
+			})
+			.catch(function (error) {
+				console.log("Update Failed: " + error.message);
+			});
 	}
 
 	function deleteTask(_taskID) {
@@ -188,7 +232,7 @@ const useTopTen = (userId, boardId) => {
 							console.log("No data committed.");
 						}
 
-						console.log("Delete task : New data: ", snapshot.val());
+						//console.log("Delete task : New data: ", snapshot.val());
 					}
 				)
 				.then(function () {
@@ -267,6 +311,31 @@ const useTopTen = (userId, boardId) => {
 					ref.remove();
 				});
 			})
+			.then(function () {
+				//console.log("Update Succeeded.");
+
+				// let nameRefToDelete = db.ref(
+				// 	`/boards/${boardId}/columnNames/${_columnIndex}`
+				// );
+				// nameRefToDelete.remove();
+
+				const _columnNameDataCopy = Array.from(ColumnNameData);
+				_columnNameDataCopy.splice(_columnIndex, 1);
+
+				SetColumnNameData(_columnNameDataCopy);
+
+				let updates = {};
+				updates[`/boards/${boardId}/columnNames/`] = _columnNameDataCopy;
+
+				db.ref()
+					.update(updates)
+					.then(function () {
+						console.log("Delete Column: Name Update Succeeded.");
+					})
+					.catch(function (error) {
+						console.log("Delete Column: Name Update Failed: " + error.message);
+					});
+			})
 			.catch(function (error) {
 				console.log("Update Failed: " + error.message);
 			});
@@ -274,6 +343,7 @@ const useTopTen = (userId, boardId) => {
 
 	return {
 		ColumnData: ColumnIndexData,
+		ColumnNames: ColumnNameData,
 		TaskData: RawTaskData,
 		AddMovie: addMovie,
 		AddGroup: addGroup,
