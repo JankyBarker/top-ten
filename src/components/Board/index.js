@@ -185,6 +185,7 @@ function Board({ CurrentUserData: _userData }) {
 		RemoveTask,
 		UpdateTaskOrder,
 		RemoveColumn,
+		ReorderColumns,
 	} = useTopTen(_currentUserID, boardId);
 
 	function DeleteColumn(_colId) {
@@ -272,6 +273,8 @@ function Board({ CurrentUserData: _userData }) {
 			//CASE 3: Reorder Columns
 			const element = stateClone.splice(srcDragLocation.index, 1);
 			stateClone.splice(destDragLocation.index, 0, element[0]);
+
+			ReorderColumns(srcDragLocation.index, destDragLocation.index);
 		}
 
 		UpdateTaskOrder(stateClone);

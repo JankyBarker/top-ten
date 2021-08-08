@@ -66,7 +66,6 @@ function AddMovie(newMovieRef, orderRef, title, taskList) {
 const useTopTen = (userId, boardId) => {
 	const [RawTaskData, SetRawTaskData] = useState(null);
 	const [ColumnIndexData, setColumnIndexData] = useState(null);
-	const [ColumnIndexDataCopy, setColumnIndexDataCopy] = useState(null);
 	const [ColumnNameData, SetColumnNameData] = useState(null);
 
 	useEffect(() => {
@@ -112,57 +111,16 @@ const useTopTen = (userId, boardId) => {
 	useEffect(() => {
 		if (!userId) return null;
 
-		const dbRefString = `/boards/${boardId}/columns_copy/`;
-		const ColumnsIndexRef = db.ref(dbRefString);
-
-		return ColumnsIndexRef.on("value", (dbColumnsIndexSnap) => {
-			if (!dbColumnsIndexSnap) return null;
-
-			const columnIndices = [];
-
-			if (dbColumnsIndexSnap.exists() && dbColumnsIndexSnap.val()) {
-				let dbValue = dbColumnsIndexSnap.val();
-				//console.log(JSON.stringify(dbValue));
-
-				//0: ["-M_CVm-J9tnNX-2peD4Y", "-M_CXCFnp05GNxoDhRLB", "-M_CXCkXKxYe_WF_Pxi2"]
-				//1: ["-M_CYEaZilSmamVqGg1K"]
-
-				dbValue.forEach((it, index) => {
-					//0: ["-M_CVm-J9tnNX-2peD4Y", "-M_CXCFnp05GNxoDhRLB", "-M_CXCkXKxYe_WF_Pxi2"]
-					var columnTaskIds = [];
-					it.forEach((childIt) => {
-						var item = {};
-						item.uid = childIt;
-						columnTaskIds.push(item);
-					});
-
-					//ensure the array is overriden to prevent zombie items
-					columnIndices[index] = columnTaskIds;
-				});
-			} else {
-				console.log(
-					"%c Error: " + dbRefString + " - Not found",
-					"background: #2f8078"
-				);
-			}
-
-			setColumnIndexDataCopy(columnIndices);
-		});
-	}, [userId, boardId]);
-
-	useEffect(() => {
-		if (!userId) return null;
-
 		const tasksTableRefString = `/boards/${boardId}/tasks`;
 		const tasksTableRef = db.ref(tasksTableRefString);
 
 		return tasksTableRef.on("value", (snap) => {
 			if (snap !== undefined) {
 				if (snap.val() === null) {
-					console.log(
-						"%c Error: " + tasksTableRefString + " - Not found",
-						"background: #2f8078"
-					);
+					// console.log(
+					// 	"%c Error: " + tasksTableRefString + " - Not found",
+					// 	"background: #2f8078"
+					// );
 				}
 
 				SetRawTaskData(snap.val());
@@ -209,11 +167,6 @@ const useTopTen = (userId, boardId) => {
 		const stateClone = Array.from(ColumnIndexData);
 
 		AddMovie(newMovieRef, orderRef, _movieName, stateClone[_colIndex]);
-
-		const orderBackupRef = db.ref(
-			`/boards/${boardId}/columns_copy/${_colIndex}/`
-		);
-		AddMovie(newMovieRef, orderBackupRef, _movieName, stateClone[_colIndex]);
 	}
 
 	function addGroup(_groupName) {
@@ -238,8 +191,6 @@ const useTopTen = (userId, boardId) => {
 				columnIndexDataCopy.push([{ uid: 0 }]);
 
 				setColumnIndexData(columnIndexDataCopy);
-
-				setColumnIndexDataCopy(columnIndexDataCopy);
 
 				postTaskOrder(columnIndexDataCopy);
 			})
@@ -298,7 +249,6 @@ const useTopTen = (userId, boardId) => {
 		if (!_columnArray) return;
 
 		setColumnIndexData(_columnArray);
-		setColumnIndexDataCopy(_columnArray);
 
 		let updates = {};
 
@@ -309,16 +259,6 @@ const useTopTen = (userId, boardId) => {
 
 			updates[`/boards/${boardId}/columns/${i}/`] = postData;
 		}
-
-		for (let i = 0; i < _columnArray.length; i++) {
-			let column = _columnArray[i];
-
-			let postData = column ? column.map((a) => a.uid) : null;
-
-			updates[`/boards/${boardId}/columns_copy/${i}/`] = postData;
-		}
-
-		//console.table(updates);
 
 		db.ref()
 			.update(updates)
@@ -401,6 +341,34 @@ const useTopTen = (userId, boardId) => {
 			});
 	}
 
+	function ReorderColumnsImp(sourceIndex, destIndex) {
+		if (sourceIndex < 0 || destIndex < 0) return;
+		console.log("from: " + sourceIndex + " to: " + destIndex);
+
+		const stateClone = Array.from(ColumnNameData);
+
+		console.log("from: " + JSON.stringify(stateClone));
+
+		const removedElements = stateClone.splice(sourceIndex, 1);
+		stateClone.splice(destIndex, 0, removedElements[0]);
+
+		SetColumnNameData(stateClone);
+
+		console.log("to: " + JSON.stringify(stateClone));
+
+		let updates = {};
+		updates[`/boards/${boardId}/columnNames/`] = stateClone;
+
+		db.ref()
+			.update(updates)
+			.then(function () {
+				//console.log("ReorderColumns: Name Update Succeeded.");
+			})
+			.catch(function (error) {
+				console.log("ReorderColumns: Name Update Failed: " + error.message);
+			});
+	}
+
 	return {
 		ColumnData: ColumnIndexData,
 		ColumnNames: ColumnNameData,
@@ -410,7 +378,7 @@ const useTopTen = (userId, boardId) => {
 		RemoveTask: deleteTask,
 		UpdateTaskOrder: postTaskOrder,
 		RemoveColumn: deleteColumn,
-		ColumnDataCopy: ColumnIndexDataCopy,
+		ReorderColumns: ReorderColumnsImp,
 	};
 };
 
