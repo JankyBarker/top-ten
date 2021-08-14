@@ -1,0 +1,170 @@
+@value minWidthPhablet, minWidthTablet, minWidthDesktop from "../../constants/breakpoints.module.css";
+
+/* Parent Page
+  –––––––––––––––––––––––––––––––––––––––––––––––––– */
+.AppPage {
+	display: grid;
+	align-items: flex-start;
+	margin-left: 0.25rem;
+	margin-right: 0.25rem;
+	overflow-x: auto;
+	padding-top: 0.75rem;
+}
+
+/*#region Breadcrum*/
+
+/* Breadcrumb
+  –––––––––––––––––––––––––––––––––––––––––––––––––– */
+.textBreadcrumb {
+	font-size: 1.25rem;
+}
+
+.breadcrumbTextHome {
+	color: rgba(30, 64, 175, 1);
+}
+
+.breadcrumbTextCurrent {
+	/* width: 50%;  */
+	font-family: inherit;
+	font-size: 100%;
+	margin-left: 0.5rem;
+	padding: 0;
+	border: 0;
+}
+
+.breadcrumbTextHome:hover {
+	color: rgba(59, 130, 246, 1);
+}
+
+.truncate {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/*#endregion*/
+
+/* Flex Container
+  –––––––––––––––––––––––––––––––––––––––––––––––––– */
+
+.ColumnGrid {
+	/* display: grid;
+    align-items: flex-start;
+    grid-auto-flow: column;
+    grid-auto-columns: 220px;
+    overflow-x: auto; */
+
+	display: flex;
+	flex-wrap: wrap;
+	flex-direction: row;
+	/* justify-content: space-around; | space-evenly */
+	align-items: stretch; /*flex-start*/
+	align-content: normal;
+
+	margin-left: 0.25rem;
+	margin-right: 0.25rem;
+	padding-top: 0.75rem;
+}
+
+/* Column Section
+  –––––––––––––––––––––––––––––––––––––––––––––––––– */
+
+.FlexItem {
+	margin: 0.5rem;
+	padding: 0.5rem;
+	background: rgb(187, 46, 77);
+
+	width: 100%; /*percent of the containing block*/
+}
+
+/* Bigger than 550 */
+@media minWidthPhablet {
+	/* Columns become box grid instead of single column */
+	.FlexItem {
+		width: auto; /* The browser calculates the width of the element based on its contents (shrinks it down to a little box) */
+	}
+}
+
+/* Bigger than 750 */
+@media minWidthTablet {
+}
+
+/* Bigger than 1000 */
+@media minWidthDesktop {
+}
+
+.ColumnContainer {
+	margin-right: 1.25rem;
+	background: rgb(237, 242, 255);
+}
+
+.ColumnContents {
+	--tw-ring-offset-shadow: 0 0 transparent;
+	--tw-ring-shadow: 0 0 transparent;
+	height: 100%;
+
+	padding-left: 0.5rem;
+	padding-right: 0.5rem;
+	padding-top: 1rem;
+	padding-bottom: 1rem;
+
+	--tw-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+	box-shadow: var(--tw-ring-offset-shadow, 0 0 transparent),
+		var(--tw-ring-shadow, 0 0 transparent), var(--tw-shadow);
+}
+
+.ColumnHeader {
+	background-image: linear-gradient(90deg, var(--tw-gradient-stops));
+	--tw-gradient-from: #1d4ed8;
+	--tw-gradient-stops: var(--tw-gradient-from), #2563eb,
+		var(--tw-gradient-to, rgba(37, 99, 235, 0));
+	--tw-gradient-to: #3b82f6;
+	border-radius: 0.125rem;
+
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+
+	padding-top: 0.25rem;
+	padding-bottom: 0.25rem;
+	padding-left: 1rem;
+	padding-right: 1rem;
+}
+
+.ColumnHeaderTextInput {
+	/*  this is the hidden text field that appears when clicked on */
+	display: none;
+
+	box-sizing: border-box;
+	border: 0 solid #e5e7eb;
+
+	margin: 0;
+	padding: 0;
+
+	font-size: 1.125rem;
+	line-height: 1.75rem;
+
+	padding-left: 0.5rem;
+	padding-right: 0.5rem;
+
+	color: rgba(29, 78, 216, 1);
+
+	width: 83.333333%;
+}
+
+.ColumnHeaderText {
+	cursor: grab;
+
+	box-sizing: border-box;
+	border: 0 solid #e5e7eb;
+
+	margin: 0;
+	font-weight: inherit;
+
+	color: rgba(219, 234, 254, 1);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 1.125rem;
+	line-height: 1.75rem;
+}

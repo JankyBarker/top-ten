@@ -1,7 +1,7 @@
 import { Draggable } from "react-beautiful-dnd";
 
-import IconCheck from "../../assets/icon-check.svg";
-import { TrashIcon } from "../Icons";
+import { TrashIcon, CheckCircle, CheckCircleComplete } from "../Icons/Icons.js";
+import styles from "./style.module.css";
 
 function UpIcon() {
 	return (
@@ -21,20 +21,9 @@ function AlignCenterIcon() {
 	);
 }
 
-function CheckCircle() {
-	return <div className="check-circle"></div>;
-}
-
-function CheckCircleComplete() {
-	return (
-		<div className="check-circle completed">
-			<img className="check-icon" src={IconCheck} alt="check-icon" />
-		</div>
-	);
-}
-
 function DraggableWrapper({ enableDragDrop, id, index, children }) {
-	if (!enableDragDrop) return <div className="TaskContents">{children}</div>;
+	if (!enableDragDrop)
+		return <div className={styles.TaskContents}>{children}</div>;
 
 	return (
 		<Draggable draggableId={id} index={index} key={id}>
@@ -43,7 +32,7 @@ function DraggableWrapper({ enableDragDrop, id, index, children }) {
 					{...provided.draggableProps}
 					{...provided.dragHandleProps}
 					ref={provided.innerRef}
-					className="TaskContents"
+					className={styles.TaskContents}
 					// this needs to be a regular DOM object (a div) not a react component due to below (refs)
 					// https://github.com/atlassian/react-beautiful-dnd/blob/master/docs/guides/using-inner-ref.md
 				>
@@ -66,8 +55,8 @@ function MovieTask({
 	};
 	return (
 		<DraggableWrapper enableDragDrop={true} id={_uniqueID} index={_index}>
-			<h4 className="TaskText">{_task.movieTitle}</h4>
-			<div className="TaskFooter">
+			<h4 className={styles.TaskText}>{_task.movieTitle}</h4>
+			<div className={styles.TaskFooter}>
 				<UpIcon />
 				<AlignCenterIcon />
 				<CheckCircle />

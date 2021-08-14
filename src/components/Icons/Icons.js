@@ -1,7 +1,9 @@
+import styles from "./style.module.css";
+
 export function TrashIcon() {
 	return (
 		<svg
-			className="TrashIcon"
+			className={styles.TrashIcon}
 			width="19"
 			viewBox="0 0 24 24"
 			fill="none"
@@ -20,7 +22,7 @@ export function TrashIcon() {
 export function AddIcon() {
 	return (
 		<svg
-			className="AddIcon"
+			className={styles.AddIcon}
 			width="30"
 			xmlns="http://www.w3.org/2000/svg"
 			viewBox="0 0 24 24"
@@ -28,5 +30,33 @@ export function AddIcon() {
 			<path fill="none" d="M0 0h24v24H0z" />
 			<path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z" />
 		</svg>
+	);
+}
+
+function CheckSVG() {
+	return (
+		<svg xmlns="http://www.w3.org/2000/svg" width="11" height="9">
+			<path
+				className={styles.CheckIcon}
+				// fill="none"
+				stroke="#FFF"
+				strokeWidth="2"
+				d="M1 4.304L3.696 7l6-6"
+			/>
+		</svg>
+	);
+}
+
+export function CheckCircle() {
+	return <div className={styles.checkCircle}></div>;
+}
+
+export function CheckCircleComplete() {
+	//console.log("temp: " + JSON.stringify(styles));
+
+	return (
+		<div className={`${styles.checkCircle} ${styles.completed}`}>
+			<CheckSVG />
+		</div>
 	);
 }

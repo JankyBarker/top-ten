@@ -1,0 +1,70 @@
+:root {
+	--check-background: linear-gradient(
+		135deg,
+		hsl(192, 100%, 67%),
+		hsl(280, 87%, 65%)
+	);
+
+	--dark-mode-circle-color: hsl(233, 14%, 35%);
+}
+
+.TrashIcon {
+	cursor: pointer;
+
+	color: rgba(29, 78, 216, 1);
+	width: 19;
+	fill: none;
+	box-sizing: border-box;
+	border: 0 solid #e5e7eb;
+
+	display: block;
+
+	stroke: currentColor;
+
+	margin-left: 1.5rem;
+}
+
+.AddIcon {
+	cursor: pointer;
+
+	color: rgba(29, 78, 216, 1);
+	width: 19;
+	fill: none;
+	box-sizing: border-box;
+	border: 0 solid #e5e7eb;
+
+	display: block;
+
+	stroke: currentColor;
+}
+
+.CheckIcon {
+	cursor: pointer;
+
+	color: rgba(29, 78, 216, 1);
+	width: 19;
+	fill: none;
+	box-sizing: border-box;
+	border: 0 solid #e5e7eb;
+
+	display: block;
+
+	stroke: currentColor;
+}
+
+.checkCircle {
+	display: flex;
+
+	width: 1.2em;
+	height: 1.2em;
+	border-radius: 50%;
+	border: 1px solid var(--dark-mode-circle-color);
+	margin-right: 1.3em;
+	justify-content: center;
+	align-items: center;
+}
+
+.checkCircle.completed {
+	background: linear-gradient(135deg, hsl(192, 100%, 67%), hsl(280, 87%, 65%));
+	background-size: 100%;
+}

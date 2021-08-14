@@ -1,13 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
 import { useParams } from "react-router";
 import { Link } from "react-router-dom";
 import useTopTen from "../../hooks/useTopTen.js";
-import { TrashIcon, AddIcon } from "../Icons.js";
+import { TrashIcon, AddIcon } from "../Icons/Icons.js";
 import MovieTask from "../MovieTask/index.js";
 // import "skeleton-css/css/normalize.css";
 // import "skeleton-css/css/skeleton.css";
-import "./style.css";
+import styles from "./style.module.css";
+
+//import { min-width-phablet, min-width-phablet, min-width-desktopy } as bp from ;
+
+import breakPoints from "../../constants/breakpoints.module.css";
 
 function Breadcrumb({ currentBoardName, onBoardNameChange }) {
 	function ChangeBoardNameEventWrap(event) {
@@ -16,15 +20,15 @@ function Breadcrumb({ currentBoardName, onBoardNameChange }) {
 	}
 
 	return (
-		<span className="text-breadcrumb">
-			<Link to="/" className="breadcrumb-text-home">
+		<span className={styles.textBreadcrumb}>
+			<Link to="/" className={styles.breadcrumbTextHome}>
 				Boards
 			</Link>
-			<span className="">/</span>
+			<span>/</span>
 			<input
 				type="text"
 				defaultValue={currentBoardName}
-				className="breadcrumb-text-current truncate"
+				className={styles.breadcrumbTextCurrent & " " & styles.truncate}
 				onChange={ChangeBoardNameEventWrap}
 			/>
 		</span>
@@ -73,16 +77,16 @@ function ColumnHeader({ title, columnIndex, deleteCol, addTask }) {
 	}
 
 	return (
-		<div className="ColumnHeader">
+		<div className={styles.ColumnHeader}>
 			<input
-				className="ColumnHeaderTextInput"
+				className={styles.ColumnHeaderTextInput}
 				type="text"
 				id={title}
 				name="columnName"
 				defaultValue="Hello World"
 			/>
 
-			<h2 className="ColumnHeaderText">{title} </h2>
+			<h2 className={styles.ColumnHeaderText}>{title} </h2>
 
 			<div onClick={DeleteColumnButtonPress}>
 				<TrashIcon />
@@ -106,6 +110,7 @@ function Column({
 	deleteCol: _deleteCol,
 	deleteTask: _deleteTask,
 	addTask: _addTask,
+	enableDrag: _dragEnabled,
 }) {
 	const columnid = `column-${_index}`;
 
@@ -138,16 +143,23 @@ function Column({
 		// index rule:
 		// 		Must be unique within a <Droppable /> (no duplicates)
 		// 		Must be consecutive. [0, 1, 2] and not [1, 2, 8]
-		<Draggable draggableId={columnid} index={_index} key={columnid}>
+		<Draggable
+			draggableId={columnid}
+			index={_index}
+			key={columnid}
+			isDragDisabled={!_dragEnabled}
+		>
 			{(provided) => (
 				<div
 					{...provided.draggableProps}
 					{...provided.dragHandleProps}
 					ref={provided.innerRef}
+					className={styles.FlexItem}
+
 					// this needs to be a regular DOM object (a div) not a react component due to below (refs)
 					// https://github.com/atlassian/react-beautiful-dnd/blob/master/docs/guides/using-inner-ref.md
 				>
-					<div className="ColumnContainer">
+					<div className={styles.ColumnContainer}>
 						<ColumnHeader
 							title={_columnTitle}
 							columnIndex={_index}
@@ -161,7 +173,7 @@ function Column({
 								<div
 									ref={provided.innerRef}
 									{...provided.droppableProps}
-									className="ColumnContents"
+									className={styles.ColumnContents}
 									style={geColumnStyle(snapshot.isDraggingOver)}
 									// this needs to be a regular DOM object (a div) not a react component due to below link (refs)
 									// https://github.com/atlassian/react-beautiful-dnd/blob/master/docs/guides/using-inner-ref.md
@@ -210,6 +222,27 @@ const move = (
 };
 
 function Board({ CurrentUserData: _userData }) {
+	//console.log("My favourite color of all time is", styles);
+
+	const [isBiggerThanPhablet, setIsBiggerThanPhablet] = useState(false);
+
+	useEffect(() => {
+		// set initial value
+		const mediaWatcher = window.matchMedia(breakPoints.minWidthPhablet);
+		setIsBiggerThanPhablet(mediaWatcher.matches);
+
+		//watch for updates
+		function updateIsNarrowScreen(e) {
+			setIsBiggerThanPhablet(e.matches);
+		}
+		mediaWatcher.addEventListener("change", updateIsNarrowScreen);
+
+		// clean up after ourselves
+		return function cleanup() {
+			mediaWatcher.removeEventListener("change", updateIsNarrowScreen);
+		};
+	}, []);
+
 	const { boardId } = useParams();
 
 	const _currentUserID = _userData?.uid;
@@ -244,6 +277,7 @@ function Board({ CurrentUserData: _userData }) {
 				deleteCol={RemoveColumn}
 				deleteTask={RemoveTask}
 				addTask={AddMovie}
+				enableDrag={isBiggerThanPhablet}
 			/>
 		);
 	}
@@ -319,7 +353,7 @@ function Board({ CurrentUserData: _userData }) {
 
 	//https://github.com/atlassian/react-beautiful-dnd/blob/master/docs/api/drag-drop-context.md
 	return (
-		<div className="App-Page">
+		<div className={styles.AppPage}>
 			<DragDropContext onDragEnd={onDragEnd}>
 				<Breadcrumb
 					currentBoardName={"hello world"}
@@ -329,7 +363,7 @@ function Board({ CurrentUserData: _userData }) {
 				<Droppable droppableId="allCols" type="column" direction="horizontal">
 					{(provided) => (
 						<div
-							className="ColumnGrid"
+							className={styles.ColumnGrid}
 							{...provided.droppableProps}
 							ref={provided.innerRef}
 						>

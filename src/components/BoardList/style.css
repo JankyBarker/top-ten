@@ -15,7 +15,6 @@
 	line-height: 2.25rem;
 }
 
-
 /* Board Boxes
   –––––––––––––––––––––––––––––––––––––––––––––––––– */
 .boardContent {
@@ -30,10 +29,6 @@
 .boardTable {
 	display: flex;
 	flex-wrap: wrap;
-}
-
-.TrashIcon {
-	margin-left: 1.5rem;
 }
 
 .boardBox {
@@ -70,8 +65,7 @@
 
 	/* Board Boxes become box grid instead of single column */
 	.boardBox {
-		width: auto; /* The browser calculates the width */
-		
+		width: auto; /* The browser calculates the width of the element based on its contents (shrinks it down to a little box) */
 	}
 }
 

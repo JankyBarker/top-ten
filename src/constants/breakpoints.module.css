@@ -1,0 +1,14 @@
+/* Larger than mobile */
+@value minWidthMobile: (min-width: 400px);
+
+/* Larger than phablet */
+@value minWidthPhablet: (min-width: 550px);
+
+/* Larger than tablet */
+@value minWidthTablet: (min-width: 750px);
+
+/* Larger than desktop */
+@value minWidthDesktop: (min-width: 1000px);
+
+/* Larger than Desktop HD */
+@value minWidthDesktopHD: (min-width: 1200px);
